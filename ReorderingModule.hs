@@ -1,4 +1,4 @@
-module ReorderingModule -- (swapmutate, revmutate, shuffelmutate, shiftmutate)
+module ReorderingModule (swapmutate, revmutate, shuffelmutate, shiftmutate, listswapmutate)
 	where
 import Moo.GeneticAlgorithm.Binary (MutationOp, getRandomR, Rand, shuffle)
 import Moo.GeneticAlgorithm.Random (getDouble, getBool)
@@ -67,8 +67,7 @@ splitHere (n:ns) xs
 
 randomIntListOfLengthAndSum :: (Double -> Double) -> Int -> Int -> Rand [Int]
 randomIntListOfLengthAndSum distribution listlength listsum = 
-	(return . scaleUp listsum . map distribution) =<< getListOfDoubles listlength
-
+	(return . scaleUp listsum . map distribution) =<< getListOfDoubles listlengt
 -- random List of Doubles between 0 and 1 (I hope getDouble is equally distributed)
 getListOfDoubles :: Int -> Rand [Double]
 getListOfDoubles 0 = return []
