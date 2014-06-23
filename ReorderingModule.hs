@@ -1,10 +1,111 @@
-module ReorderingModule (swapmutate, revmutate, shuffelmutate, shiftmutate, listswapmutate)
+module ReorderingModule (swapmutate, revmutate, shuffelmutate, shiftmutate, listswapmutate, orderCrossover, numMutation)
 	where
-import Moo.GeneticAlgorithm.Binary (MutationOp, getRandomR, Rand, shuffle)
-import Moo.GeneticAlgorithm.Random (getDouble, getBool)
+import Moo.GeneticAlgorithm.Binary (CrossoverOp, Genome, MutationOp, getRandomR, Rand, shuffle)
+import Moo.GeneticAlgorithm.Random (getDouble, getBool, withProbability, getNormal)
 import Data.Ord (comparing)
-import Data.List (sortBy, sort)
+import Data.List (sortBy, sort, group, nub)
 import Test.QuickCheck
+import Data.Graph.Inductive.Query.Monad (mapFst, mapSnd)
+import Control.Monad (liftM)
+
+edgeCrossover :: (Ord a, Eq a) => [[a]] -> Rand [a]
+edgeCrossover parents =
+	do
+		-- the one that is used as a startpoint by most of the parents
+		startpoint <- chooseRandom . maxArg length . group . sort . map head $ parents
+		return []
+
+analyzeParents :: (Eq a, Ord a) => [[a]] -> [((a,a), Int)]
+analyzeParents = map (\list -> (head list, length list)) . group . sort . concatMap analyzeParent
+	where
+		analyzeParent :: [a] -> [(a,a)]
+		analyzeParent [] = []
+		analyzeParent [_] = []
+		analyzeParent (x:y:zs) = (x,y) : analyzeParent (y:zs)
+
+-- assumes that the Genomes are made from the same set of numbers
+chooseEdge :: (Ord a) => [(a,a)] -> a -> Rand (a,a)
+chooseEdge edges startpoint = chooseEdgeByNumberOfDecicons startpoint . map head . maxArg length . group . sort . filter (hasStartpoint startpoint) $  edges
+-- chooses those of the edges whis leads to a point of small choise
+
+chooseEdgeByNumberOfDecicons :: (Ord a) =>  a -> [(a,a)] -> Rand (a,a)
+chooseEdgeByNumberOfDecicons  startpoint possibleedges =
+		chooseRandom . map (\y -> (startpoint, y)) . minArg (length . getPossibleNext possibleedges) . getPossibleNext possibleedges $ startpoint
+	where
+		getPossibleNext :: (Eq a) => [(a,a)] -> a -> [a]
+		getPossibleNext alledges startpoint = nub . map snd . filter (hasStartpoint startpoint) $ alledges
+
+chooseRandom :: [b] -> Rand b
+chooseRandom = liftM head . shuffle 
+
+minArg :: (Ord b) => (a -> b) -> [a] -> [a]
+minArg f xs = [x | x <- xs, f x == minimum (map f xs)]
+
+maxArg :: (Ord b) => (a -> b) -> [a] -> [a]
+maxArg f xs = [x | x <- xs, f x == maximum (map f xs)]
+
+hasStartpoint :: (Eq a) => a -> (a,a) -> Bool
+hasStartpoint x (y,_) = x == y
+
+
+-- edges of all parents in a list
+alledges :: [[a]] -> [(a,a)]
+alledges = concatMap edges 
+	where
+		edges :: [a] -> [(a,a)]
+		edges [] = []
+		edges [_] = []
+		edges (x:y:zs) = (x,y):(edges (y:zs))
+
+
+
+
+
+
+
+
+
+
+-- Not tested
+numMutation :: (Integral a) => MutationOp a 
+numMutation xs = do
+	mapM gausmutate xs
+	where
+		gausmutate :: (Integral a) => a -> Rand a
+		gausmutate x = do
+			difference <- getNormal
+			return $ round (fromIntegral x + difference)
+
+-- type CrossoverOp a = [Genome a] -> Rand ([Genome a], [Genome a])
+-- |Somehow concat the genomes and remove multiples
+-- Apply with probability @p@.
+orderCrossover :: (Ord a) => Double -> CrossoverOp a
+orderCrossover _ []  = return ([], [])
+orderCrossover _ [celibate] = return ([],[celibate])
+orderCrossover p (g1:g2:rest) = do
+	splitpoint <- getRandomR (0, min (length g1) (length g2))
+	(h1,h2) <- withProbability p (return . orderCrossover' splitpoint) (g1,g2)
+	return ([h1,h2], rest)
+	where
+		orderCrossover' :: (Ord a) => Int -> (Genome a, Genome a) -> (Genome a, Genome a)
+		orderCrossover' splitpoint (mother, father) = (doCrossover splitpoint (mother, father), doCrossover splitpoint (father, mother))
+			where
+				doCrossover :: (Ord a) => Int -> (Genome a, Genome a) -> Genome a
+				doCrossover splitpoint (xs1,xs2) = (map fst . sortBy (comparing snd) . uncurry (++) . mapFst (map fstWithTrd) . mapSnd (map sndWithTrd) . splitAt splitpoint . sortBy (comparing fst') . zip3 xs1 xs2) [1..]
+				
+				fst' :: (a,b,c) -> a
+				fst' (x,_,_) = x
+				snd' :: (a,b,c) -> b
+				snd' (_,y,_) = y
+				trd' :: (a,b,c) -> c
+				trd' (_,_,z) = z
+		
+				fstWithTrd :: (a,b,c) -> (a,c)
+				fstWithTrd (x,_,z) = (x,z)
+		
+				sndWithTrd :: (a,b,c) -> (b,c)
+				sndWithTrd (_,y,z) = (y,z)
+
 
 
 swapmutate :: MutationOp a
@@ -67,7 +168,7 @@ splitHere (n:ns) xs
 
 randomIntListOfLengthAndSum :: (Double -> Double) -> Int -> Int -> Rand [Int]
 randomIntListOfLengthAndSum distribution listlength listsum = 
-	(return . scaleUp listsum . map distribution) =<< getListOfDoubles listlengt
+	(return . scaleUp listsum . map distribution) =<< getListOfDoubles listlength
 -- random List of Doubles between 0 and 1 (I hope getDouble is equally distributed)
 getListOfDoubles :: Int -> Rand [Double]
 getListOfDoubles 0 = return []
@@ -116,7 +217,7 @@ remainer d = d - (fromIntegral.floor) d
 
 
 	
-main = quickCheckAll
+main = print "It compiles."--quickCheckAll
 
 quickCheckAll :: IO()
 quickCheckAll = do
