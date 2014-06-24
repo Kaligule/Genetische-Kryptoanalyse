@@ -1,39 +1,87 @@
-module ReorderingModule (swapmutate, revmutate, shuffelmutate, shiftmutate, listswapmutate, orderCrossover, numMutation)
+module ReorderingModule (swapmutate, revmutate, shuffelmutate, shiftmutate, listswapmutate, orderCrossover, edgeCrossover)
 	where
 import Moo.GeneticAlgorithm.Binary (CrossoverOp, Genome, MutationOp, getRandomR, Rand, shuffle)
 import Moo.GeneticAlgorithm.Random (getDouble, getBool, withProbability, getNormal)
 import Data.Ord (comparing)
-import Data.List (sortBy, sort, group, nub)
+import Data.List (sortBy, sort, group, groupBy, nub, permutations)
 import Test.QuickCheck
 import Data.Graph.Inductive.Query.Monad (mapFst, mapSnd)
 import Control.Monad (liftM)
+import ShowRandModule (showRand)
 
-edgeCrossover :: (Ord a, Eq a) => [[a]] -> Rand [a]
-edgeCrossover parents =
-	do
-		-- the one that is used as a startpoint by most of the parents
-		startpoint <- chooseRandom . maxArg length . group . sort . map head $ parents
-		return []
+-- 2 parents have Sex, we could do groupsex if we wanted 
+edgeCrossover :: (Eq a, Ord a) => CrossoverOp a
+edgeCrossover []  = return ([], [])
+edgeCrossover [celibate] = return ([],[celibate])
+edgeCrossover (g1:g2:rest) = do
+	child1 <- haveSexForEdgeCrossover [g1,g2]
+	child2 <- haveSexForEdgeCrossover [g1,g2]
+	return ([child1,child2], rest)
 
-analyzeParents :: (Eq a, Ord a) => [[a]] -> [((a,a), Int)]
-analyzeParents = map (\list -> (head list, length list)) . group . sort . concatMap analyzeParent
-	where
-		analyzeParent :: [a] -> [(a,a)]
-		analyzeParent [] = []
-		analyzeParent [_] = []
-		analyzeParent (x:y:zs) = (x,y) : analyzeParent (y:zs)
 
--- assumes that the Genomes are made from the same set of numbers
-chooseEdge :: (Ord a) => [(a,a)] -> a -> Rand (a,a)
-chooseEdge edges startpoint = chooseEdgeByNumberOfDecicons startpoint . map head . maxArg length . group . sort . filter (hasStartpoint startpoint) $  edges
--- chooses those of the edges whis leads to a point of small choise
+haveSexForEdgeCrossover :: (Eq a, Ord a) => [[a]] -> Rand [a]
+haveSexForEdgeCrossover parents = do
+	let parentalEdges = concatMap edges parents
+	startpoint <- chooseRandom . filterByNumber . map head $ parents
+	let possibleKnots = nub . concat $ parents
+	-- this is dangerous if the parents aren't made of the exactly same knots
+	childTail <- findPathFrom startpoint possibleKnots parentalEdges
+	return (startpoint : childTail)
 
-chooseEdgeByNumberOfDecicons :: (Ord a) =>  a -> [(a,a)] -> Rand (a,a)
-chooseEdgeByNumberOfDecicons  startpoint possibleedges =
-		chooseRandom . map (\y -> (startpoint, y)) . minArg (length . getPossibleNext possibleedges) . getPossibleNext possibleedges $ startpoint
-	where
-		getPossibleNext :: (Eq a) => [(a,a)] -> a -> [a]
-		getPossibleNext alledges startpoint = nub . map snd . filter (hasStartpoint startpoint) $ alledges
+-- for haveSexForEdgeCrossover
+-- can deal with (startKnot `elem` knotsToPass) and parentalEdges from or to bad knots
+findPathFrom :: (Eq a, Ord a) => a -> [a] -> [(a,a)] -> Rand [a]
+findPathFrom startKnot knotsToPass parentalEdges = do
+	let remainingEdges = filterEdgesByKnots knotsToPass parentalEdges
+	let remainingKnots = removeTakenKnot startKnot knotsToPass
+	if null remainingKnots
+		then return []
+	else do  
+		nextEdge <- chooseEdge startKnot remainingKnots remainingEdges
+		let nextKnot = snd nextEdge
+		restPath <- findPathFrom nextKnot remainingKnots remainingEdges
+		return (nextKnot:restPath)
+
+-- tries to find the best edge of the given list of edges
+-- if there is no edge that fits, one is made up 
+chooseEdge :: (Eq a, Ord a) => a -> [a] -> [(a,a)] -> Rand (a,a)
+chooseEdge _ [] _ = error "No knots to choose from."
+chooseEdge startKnot [onlyRemainingKnot] _ = return $ fromTo startKnot onlyRemainingKnot
+chooseEdge startKnot remainingKnots remainingParentalEdges = do
+	let favouritEdges = filterByStartingpoint startKnot remainingParentalEdges
+	if (not . null) favouritEdges then
+		chooseRandom . filterByDecicions startKnot . filterByNumber $ favouritEdges
+	else do
+		randomKnot <- chooseRandom remainingKnots
+		return (fromTo startKnot randomKnot)
+		--error $ "There was no parentalEdge from this starting point." -- ++ " Was called with chooseEdge " ++ show startKnot ++ " " ++ show remainingKnots ++ " " ++ show remainingParentalEdges 
+
+-- only returns Edges that live inside a pool of given knots
+filterEdgesByKnots :: (Eq a) => [a] -> [(a,a)] -> [(a,a)]
+filterEdgesByKnots goodKnots candidateEdges = [edge | edge <- candidateEdges, fst edge `elem` goodKnots, snd edge `elem` goodKnots ] 
+
+
+removeTakenKnot :: (Eq a) => a -> [a] -> [a]
+removeTakenKnot x = filter (/= x)
+
+-- removes every edge from or to x
+removeUntakenEdges :: (Eq a) => a -> [(a,a)] -> [(a,a)]
+removeUntakenEdges x = filter (not . hasEndpoint x) . filter (not . hasStartpoint x)
+
+-- only return those that appear most often in the list.
+filterByNumber :: (Ord a, Eq a) => [a] -> [a]
+filterByNumber = concat . maxArg length . group . sort
+
+filterByStartingpoint :: (Eq a) => a -> [(a,a)] -> [(a,a)]
+filterByStartingpoint x = filter (hasStartpoint x)
+
+-- take those edges where the knot you come out has a small number of outgoing edges
+filterByDecicions :: (Eq a) => a -> [(a,a)] -> [(a,a)]
+filterByDecicions x xs = map (fromTo x) . minArg (decicions xs) . poissibleEndPoints . filterByStartingpoint x $ xs
+
+-- fromTo x y creates an edge that leads from x to y. Its basicly a type constructor
+fromTo :: a -> a -> (a,a)
+fromTo x y = (x,y)
 
 chooseRandom :: [b] -> Rand b
 chooseRandom = liftM head . shuffle 
@@ -47,15 +95,36 @@ maxArg f xs = [x | x <- xs, f x == maximum (map f xs)]
 hasStartpoint :: (Eq a) => a -> (a,a) -> Bool
 hasStartpoint x (y,_) = x == y
 
+hasEndpoint :: (Eq a) => a -> (a,a) -> Bool
+hasEndpoint x (_,y) = x == y
 
--- edges of all parents in a list
-alledges :: [[a]] -> [(a,a)]
-alledges = concatMap edges 
+
+-- how many unique endpoints are there
+-- (not startpointspecific)
+poissibleEndPoints :: (Eq a) =>[(a,a)] -> [a]
+poissibleEndPoints = nub . map snd
+
+-- if I start here, in how many unique directions can I go?
+decicions :: (Eq a) => [(a,a)] -> a -> Int
+decicions xs x = length . poissibleEndPoints . filterByStartingpoint x $ xs
+
+-- given lists that are just permutations of each other, return the first one. Otherwise throw an error
+-- should work without (Ord a), too
+
+knots :: (Ord a) => [[a]] -> [a]
+knots parents
+	| justPermutations parents	= head parents
+	| otherwise 				= error "Parents were too different"
 	where
-		edges :: [a] -> [(a,a)]
-		edges [] = []
-		edges [_] = []
-		edges (x:y:zs) = (x,y):(edges (y:zs))
+		-- abuse of edges
+		justPermutations :: (Ord a) => [[a]] -> Bool
+		justPermutations = all (uncurry (==)) . edges . map sort
+
+-- edges of one parent in a list
+edges :: [a] -> [(a,a)]
+edges [] = []
+edges [_] = []
+edges (x:y:zs) = (x,y): edges (y:zs)
 
 
 
@@ -64,17 +133,6 @@ alledges = concatMap edges
 
 
 
-
-
--- Not tested
-numMutation :: (Integral a) => MutationOp a 
-numMutation xs = do
-	mapM gausmutate xs
-	where
-		gausmutate :: (Integral a) => a -> Rand a
-		gausmutate x = do
-			difference <- getNormal
-			return $ round (fromIntegral x + difference)
 
 -- type CrossoverOp a = [Genome a] -> Rand ([Genome a], [Genome a])
 -- |Somehow concat the genomes and remove multiples
@@ -217,7 +275,10 @@ remainer d = d - (fromIntegral.floor) d
 
 
 	
-main = print "It compiles."--quickCheckAll
+main = do
+	showRand (edgeCrossover [[1,2,3,4,5,6], [1,2,4,3,5,6], [1,2,6,3,5,4]])
+	--print "It compiles."
+	--quickCheckAll
 
 quickCheckAll :: IO()
 quickCheckAll = do
@@ -225,7 +286,15 @@ quickCheckAll = do
 	quickCheck prop_OneParty
 	quickCheck prop_NumberOfPartys
 	quickCheck prop_ScaleUpRank
-	quickCheck prop_SplitHere
+	-- quickCheck prop_SplitHere -- takes very long
+	quickCheck prop_knots
+
+prop_knots :: [Char] -> Int -> Property
+prop_knots list n = 
+			n > 0 ==>
+			list == knots permutationList
+			where
+				permutationList = take ((+) 1 . abs . flip mod 100 $ n) . cycle . permutations $ list
 
 prop_IntRemainerIsZero :: Int -> Bool
 prop_IntRemainerIsZero = (0==) . remainer . fromIntegral

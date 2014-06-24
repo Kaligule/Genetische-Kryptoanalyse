@@ -9,7 +9,7 @@ import Moo.GeneticAlgorithm.Continuous (getRandomGenomes)
 import BlindtextModule (cryptotext1, cryptotext2)
 import SnModule (makePeriodicS_n)
 import TypeModule
-import ReorderingModule (swapmutate,revmutate,shuffelmutate, shiftmutate, listswapmutate)
+import ReorderingModule (swapmutate,revmutate,shuffelmutate, shiftmutate, listswapmutate, orderCrossover, edgeCrossover)
 
 {-
 Sorting a list (of Characters) using a genetic algorythm.
@@ -40,7 +40,7 @@ tail -5 output.txt
 
 
 
-period = 10
+period = 7
 genomesize = period
 -- stopconditions (they are very high)
 maxiters = 50000
@@ -55,9 +55,11 @@ popsize = 7
 selection :: SelectionOp a
 selection = rouletteSelect 5
 
-crossover :: CrossoverOp a
+crossover :: (Ord a) => CrossoverOp a
 crossover =
-	noCrossover
+	edgeCrossover
+	--noCrossover
+	--orderCrossover 0.3
 	--uniformCrossover 0.3
 
 mutation :: MutationOp a
@@ -70,7 +72,7 @@ elitesize = 1
 -- sortingFittnes ls == 1 is aquivalent to ls == sort ls
 natFitnes :: (Ord a) => Problem Char -> Genome a -> Double
 natFitnes problem genome =
-	naturalism ((makePeriodicS_n genome) problem)
+	naturalism (makePeriodicS_n genome problem)
 			-- /P (fromIntegral . twoOutOf . length) problem
 	where
 		twoOutOf :: Int -> Int
@@ -143,7 +145,7 @@ intRange n = (0,d*n)
 --TODO: fixme
 initializeIntGenome :: Int -> Int -> Rand [Genome Int]
 initializeIntGenome populationsize myPeriod = do
-	return . take populationsize . map (take myPeriod) . permutations $ [0,10..] 
+	return . take populationsize . map (take myPeriod) . permutations $ [0,1..] 
 	--manygenomes <- getRandomGenomes myPeriod $ [intRange myPeriod]
 	--return (take populationsize manygenomes) 
 
