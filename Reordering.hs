@@ -41,6 +41,4 @@ initializeIntGenome populationsize genomeLength = do
 -- sometimes usefull for fittness functions
 -- [1,2,3,4,5] -> [(1,2),(2,3),(3,4),(4,5)]
 pairs :: [a] -> [(a,a)]
-pairs [] = []
-pairs [_] = []
-pairs (a:b:rest) = (a,b): pairs (b:rest)
+pairs list = zip list (tail list) 
