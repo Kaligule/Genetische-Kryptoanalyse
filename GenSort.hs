@@ -9,7 +9,8 @@ import Moo.GeneticAlgorithm.Continuous (getRandomGenomes)
 import BlindtextModule (cryptotext1, cryptotext2)
 import SnModule (makePeriodicS_n)
 import TypeModule
-import ReorderingModule (swapmutate,revmutate,shuffelmutate, shiftmutate, listswapmutate, orderCrossover, edgeCrossover)
+import ReorderingMutations (swapMutate, listswapMutate, revMutate, blockSwapMutate, shuffelMutate, shiftMutate)
+import ReorderingCrossOvers (edgeCrossover)
 
 {-
 Sorting a list (of Characters) using a genetic algorythm.
@@ -57,16 +58,17 @@ selection = rouletteSelect 5
 
 crossover :: (Ord a) => CrossoverOp a
 crossover =
-	edgeCrossover
+	edgeCrossover 2
 	--noCrossover
 	--orderCrossover 0.3
 	--uniformCrossover 0.3
 
 mutation :: MutationOp a
 mutation =
-	shiftmutate
-	--listswapmutate
-	
+	shiftMutate
+	--listswapMutate
+	--blockSwapMutate
+
 elitesize = 1
 
 -- sortingFittnes ls == 1 is aquivalent to ls == sort ls
@@ -81,8 +83,8 @@ natFitnes problem genome =
 
 showGenome :: (Ord a, Show a) => Problem Char -> Genome a -> String
 showGenome problem genome = "Genome " ++ show genome
-						++ "\nmakes " ++ show problem 
-						++ "\nto " ++ (show . makePeriodicS_n genome) problem
+						++ "\nmakes " ++ (begining . show) problem 
+						++ "\nto " ++ (begining . show . makePeriodicS_n genome) problem
 						++ "\n(natFitnes: " ++ show (natFitnes problem genome) ++ ")"
 						where
 							showBits :: [Bool] -> String
@@ -113,11 +115,11 @@ logStats problem iterno pop = do
 	let median = gs !! (length gs `div` 2)
 	let worst = last gs
 	putStrLn $ unwords	[ show iterno
-						, (take 6 . show . natFitnes problem) best
+						, (begining . show . natFitnes problem) best
 						, (braces . show) best
-						, (take 6 . show . natFitnes problem) median
+						, (begining . show . natFitnes problem) median
 						, (braces . show) median
-						, (take 6 . show . natFitnes problem) worst
+						, (begining . show . natFitnes problem) worst
 						, (braces . show) worst
 						, (take 10 . show . makePeriodicS_n best) problem
 						]
@@ -132,6 +134,10 @@ main = do
 	putStrLn $ showGenome problem winner
 	return ()
 
+
+begining :: String -> String
+begining xs = take n xs -- ++ "..."
+	where n = 6
 
 -- Dealing with Genomes
 
