@@ -1,4 +1,4 @@
-mvmodule ShowRandModule (showRand) where
+module ShowRandModule (showRand) where
 
 import Control.Monad.Mersenne.Random
 import System.Random.Mersenne.Pure64
