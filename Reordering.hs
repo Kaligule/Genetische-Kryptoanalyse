@@ -3,6 +3,8 @@ module Reordering
 	-- Types
 	module Moo.GeneticAlgorithm.Types
 	-- Mutations
+	, combineMutationOps
+	, completeShiftMutate
 	, swapMutate
 	, listswapMutate
 	, revMutate
@@ -23,7 +25,7 @@ import Moo.GeneticAlgorithm.Types
 import Moo.GeneticAlgorithm.Random
 import Moo.GeneticAlgorithm.Run
 
-import ReorderingMutations (swapMutate, listswapMutate, revMutate, blockSwapMutate, shuffelMutate, shiftMutate)
+import ReorderingMutations (combineMutationOps, completeShiftMutate, swapMutate, listswapMutate, revMutate, blockSwapMutate, shuffelMutate, shiftMutate)
 import ReorderingCrossOvers (edgeCrossover)
 
 import Data.List (sortBy, permutations)

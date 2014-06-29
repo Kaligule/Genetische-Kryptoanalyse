@@ -9,7 +9,7 @@ import Moo.GeneticAlgorithm.Continuous (getRandomGenomes)
 import BlindtextModule (cryptotext1, cryptotext2)
 import SnModule (makePeriodicS_n)
 import TypeModule
-import ReorderingMutations (swapMutate, listswapMutate, revMutate, blockSwapMutate, shuffelMutate, shiftMutate)
+import ReorderingMutations (combineMutationOps, completeShiftMutate, swapMutate, listswapMutate, revMutate, blockSwapMutate, shuffelMutate, shiftMutate)
 import ReorderingCrossOvers (edgeCrossover)
 
 {-
@@ -51,7 +51,7 @@ problem :: Problem Char
 problem = cryptotext2
 
 popsize :: Int
-popsize = 7
+popsize = 9
 
 selection :: SelectionOp a
 selection = rouletteSelect 5
@@ -65,7 +65,8 @@ crossover =
 
 mutation :: MutationOp a
 mutation =
-	shiftMutate
+	combineMutationOps [shiftMutate, completeShiftMutate]
+	--shiftMutate
 	--listswapMutate
 	--blockSwapMutate
 

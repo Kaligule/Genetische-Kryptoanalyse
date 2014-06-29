@@ -1,12 +1,17 @@
-module ReorderingMutations (swapMutate, listswapMutate, revMutate, blockSwapMutate, shuffelMutate, shiftMutate) where
+module ReorderingMutations (combineMutationOps, completeShiftMutate, swapMutate, listswapMutate, revMutate, blockSwapMutate, shuffelMutate, shiftMutate) where
 
 import Moo.GeneticAlgorithm.Binary (CrossoverOp, Genome, MutationOp, getRandomR, Rand, shuffle)
-import Moo.GeneticAlgorithm.Random (getDouble, getBool, withProbability, getNormal)
+import Moo.GeneticAlgorithm.Random (getDouble, getInt, getBool, withProbability, getNormal)
 import Data.Ord (comparing)
 import Data.List (sortBy, sort, group, groupBy, nub, permutations)
 import Test.QuickCheck
 import Control.Monad (liftM, replicateM)
 
+combineMutationOps ::  [MutationOp a] -> MutationOp a
+combineMutationOps mutations xs = do
+		-- index of the choosen mutation
+		index <- getInt
+		(mutations !! (index `mod` (length mutations))) xs
 
 swapMutate :: MutationOp a
 swapMutate xs = 
@@ -45,13 +50,19 @@ shiftMutate xs = do
 	[x1,x2,x3] <- randomSplitIn 3 xs
 	return $ x1 ++ shift x2 ++ x3
 
-	where
-		rightShift :: [a] -> [a]
-		rightShift [] = []
-		rightShift xs = [last xs] ++ init xs
-		leftShift :: [a] -> [a]
-		leftShift [] = []
-		leftShift xs = tail xs ++ [head xs]
+
+completeShiftMutate :: MutationOp a
+completeShiftMutate xs = do
+	numberOfShifts <- getInt
+	return $ (iterate leftShift xs) !! (numberOfShifts `mod` (length xs))
+
+rightShift :: [a] -> [a]
+rightShift [] = []
+rightShift xs = [last xs] ++ init xs
+
+leftShift :: [a] -> [a]
+leftShift [] = []
+leftShift xs = tail xs ++ [head xs]
 
 randomSplitIn :: Int -> [a] -> Rand [[a]]
 randomSplitIn n xs = do
