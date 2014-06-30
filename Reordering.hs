@@ -37,9 +37,9 @@ applyReordering :: (Ord a) => [a] -> [b] -> [b]
 applyReordering genome = map snd . sortBy (comparing fst) . zip genome
 
 --TODO: Not a good initialization
-initializeIntGenome :: Int -> Int -> Rand [Genome Int]
+initializeIntGenome :: (Enum a) => Int -> Int -> Rand [Genome a]
 initializeIntGenome populationsize genomeLength = do
-	replicateM populationsize . shuffle . take genomeLength $ [0..]
+	replicateM populationsize . shuffle . take genomeLength $ [toEnum 0..]
 
 -- sometimes usefull for fittness functions
 -- [1,2,3,4,5] -> [(1,2),(2,3),(3,4),(4,5)]
