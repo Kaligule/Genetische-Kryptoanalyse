@@ -14,7 +14,7 @@ module Reordering
 	-- Crossovers
 	, edgeCrossover
 	-- initialization
-	, initializeIntGenome
+	, initializeEnumGenome
 	-- apply
 	, applyReordering
 	-- others
@@ -37,8 +37,8 @@ applyReordering :: (Ord a) => [a] -> [b] -> [b]
 applyReordering genome = map snd . sortBy (comparing fst) . zip genome
 
 --TODO: Not a good initialization
-initializeIntGenome :: (Enum a) => Int -> Int -> Rand [Genome a]
-initializeIntGenome populationsize genomeLength = do
+initializeEnumGenome :: (Enum a) => Int -> Int -> Rand [Genome a]
+initializeEnumGenome populationsize genomeLength = do
 	replicateM populationsize . shuffle . take genomeLength $ [toEnum 0..]
 
 -- sometimes usefull for fittness functions
