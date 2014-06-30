@@ -9,9 +9,7 @@ import Moo.GeneticAlgorithm.Continuous (getRandomGenomes)
 import BlindtextModule (cryptotext1, cryptotext2)
 import SnModule (makePeriodicS_n)
 import TypeModule
-import ReorderingMutations (combineMutationOps, completeShiftMutate, swapMutate, listswapMutate, revMutate, blockSwapMutate, shuffelMutate, shiftMutate)
-import ReorderingCrossOvers (edgeCrossover)
-
+import Reordering (combineMutationOps, completeShiftMutate, swapMutate, listswapMutate, revMutate, blockSwapMutate, shuffelMutate, shiftMutate, initializeEnumGenome, edgeCrossover)
 {-
 Sorting a list (of Characters) using a genetic algorythm.
 The output should be readable for human, but for a nice
@@ -94,7 +92,7 @@ showGenome problem genome = "Genome " ++ show genome
 
 geneticAlgorithm :: Problem Char -> IO (Population Int)
 geneticAlgorithm problem = do
-	runIO (initializeIntGenome popsize period) $ loopIO
+	runIO (initializeEnumGenome popsize period) $ loopIO
 		[DoEvery 1 (logStats problem), TimeLimit timeLimit]
 		(Or (Generations maxiters) (IfObjective (any (>=350))))
 		nextGen
@@ -148,13 +146,6 @@ intRange :: Int -> (Int, Int)
 intRange n = (0,d*n)
 	where
 		d = 10
-
---TODO: fixme
-initializeIntGenome :: Int -> Int -> Rand [Genome Int]
-initializeIntGenome populationsize myPeriod = do
-	return . take populationsize . map (take myPeriod) . permutations $ [0,1..] 
-	--manygenomes <- getRandomGenomes myPeriod $ [intRange myPeriod]
-	--return (take populationsize manygenomes) 
 
 -- just for testing
 printAllPossibleSolutions :: IO()
