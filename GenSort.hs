@@ -6,7 +6,7 @@ import Data.List (intercalate, sortBy, permutations)
 import Data.Ord (comparing)
 import NaturalLanguageModule  (naturalism)
 import Moo.GeneticAlgorithm.Continuous (getRandomGenomes)
-import BlindtextModule (cryptotext1, cryptotext2)
+import BlindtextModule (cryptotext1)
 import SnModule (makePeriodicS_n)
 import TypeModule
 import Reordering (combineMutationOps, completeShiftMutate, swapMutate, listswapMutate, revMutate, blockSwapMutate, shuffelMutate, shiftMutate, initializeEnumGenome, edgeCrossover)
@@ -39,14 +39,14 @@ tail -5 output.txt
 
 
 
-period = 7
+period = 10
 genomesize = period
 -- stopconditions (they are very high)
 maxiters = 50000
-timeLimit = 20 -- in seconds
+timeLimit = 60 -- in seconds
 
 problem :: Problem Char
-problem = cryptotext2
+problem = cryptotext1
 
 popsize :: Int
 popsize = 9
@@ -94,7 +94,7 @@ geneticAlgorithm :: Problem Char -> IO (Population Int)
 geneticAlgorithm problem = do
 	runIO (initializeEnumGenome popsize period) $ loopIO
 		[DoEvery 1 (logStats problem), TimeLimit timeLimit]
-		(Or (Generations maxiters) (IfObjective (any (>=350))))
+		(Or (Generations maxiters) (IfObjective (any (>=900))))
 		nextGen
 		where
 			nextGen :: StepGA Rand Int
