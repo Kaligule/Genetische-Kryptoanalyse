@@ -43,6 +43,7 @@ period = 10
 genomesize = period
 -- stopconditions (they are very high)
 maxiters = 50000
+minFittness = 920
 timeLimit = 60 -- in seconds
 
 problem :: Problem Char
@@ -94,7 +95,7 @@ geneticAlgorithm :: Problem Char -> IO (Population Int)
 geneticAlgorithm problem = do
 	runIO (initializeEnumGenome popsize period) $ loopIO
 		[DoEvery 1 (logStats problem), TimeLimit timeLimit]
-		(Or (Generations maxiters) (IfObjective (any (>=900))))
+		(Or (Generations maxiters) (IfObjective (any (>= minFittness))))
 		nextGen
 		where
 			nextGen :: StepGA Rand Int
@@ -139,13 +140,6 @@ begining xs = take n xs -- ++ "..."
 	where n = 6
 
 -- Dealing with Genomes
-
--- in which range are the numbers that are sorted to generate the S_n
--- the bigger d the more permutations are evaluated, so they are more equaly distributed
-intRange :: Int -> (Int, Int)
-intRange n = (0,d*n)
-	where
-		d = 10
 
 -- just for testing
 printAllPossibleSolutions :: IO()

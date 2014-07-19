@@ -1,5 +1,5 @@
 set termina pdf enhanced color font 'Helvetica,10'
-set yrange [0:360]
+#set yrange [0:360]
 set xlabel 'Generations'
 set ylabel 'sorting fittnes'
 set output pdfName 
