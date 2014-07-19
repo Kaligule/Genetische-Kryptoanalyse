@@ -15,6 +15,7 @@ module Reordering
 	, edgeCrossover
 	-- initialization
 	, initializeEnumGenome
+	, initializePermutatedGenome
 	-- apply
 	, applyReordering
 	-- others
@@ -36,10 +37,13 @@ import Control.Monad (replicateM)
 applyReordering :: (Ord a) => [a] -> [b] -> [b]
 applyReordering genome = map snd . sortBy (comparing fst) . zip genome
 
---TODO: Not a good initialization
 initializeEnumGenome :: (Enum a) => Int -> Int -> Rand [Genome a]
-initializeEnumGenome populationsize genomeLength = do
-	replicateM populationsize . shuffle . take genomeLength $ [toEnum 1..]
+initializeEnumGenome populationsize genomeLength = initializePermutatedGenome populationsize (take genomeLength [toEnum 1..])
+
+-- permutates the given genomeSource populationsize times 
+initializePermutatedGenome :: Int -> Genome a -> Rand [Genome a]
+initializePermutatedGenome populationsize genomeSource = do
+	replicateM populationsize . shuffle $ genomeSource
 
 -- sometimes usefull for fittness functions
 -- [1,2,3,4,5] -> [(1,2),(2,3),(3,4),(4,5)]
