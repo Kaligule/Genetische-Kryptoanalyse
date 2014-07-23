@@ -12,9 +12,11 @@ import Test.QuickCheck
 import Data.List (tails, inits, intersect)
 import Data.Maybe (fromMaybe)
 import Data.List (zip4)
+import Data.List (nub)
+{-
 -- for testing
 import BlindtextModule (blindtext1, cryptotext1)
-import Data.List (nub)
+-}
 
 data Evaluable = Monogram | Bigram | Trigram | Quadrigram | Word
 
@@ -268,7 +270,8 @@ wordValueList =
   ]
 
 weightBy :: (Fractional a) => Evaluable -> a -> a
-weightBy Word = \x -> x / 100
+weightBy Monogram	= (*) 10
+weightBy Word 		= (*) 0.01
 weightBy _ = id
 
 maxWordLength :: Int
@@ -291,14 +294,18 @@ naturalism :: String -> Double
 naturalism = sum . zipWith evaluateBy evaluables . repeat . normalizeLanguage
 	where
 		evaluables :: [Evaluable]
-		evaluables =	[ Bigram
+		evaluables =	[ Monogram
+						, Bigram
 						, Trigram
 						, Quadrigram
+						, Word
 						]
 
 charList :: [Char]
 charList = map fst monogramValueList
 
+
+{-
 -- Testing
 
 main = do
@@ -324,3 +331,5 @@ prop_normalize_normalize str = (normalizeLanguage . normalizeLanguage) str == no
 
 prop_sublists_length :: [Char] -> Bool
 prop_sublists_length lst = (length . sublists) lst == sum [0..length lst]
+
+-}
