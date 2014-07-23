@@ -10,6 +10,10 @@ import BlindtextModule (cryptotext2)
 import MascModule (Direction (..), MascKey, masc, initializeMascGenome)
 import TypeModule
 import Reordering (combineMutationOps, completeShiftMutate, swapMutate, listswapMutate, revMutate, blockSwapMutate, shuffelMutate, shiftMutate, initializeEnumGenome, edgeCrossover)
+
+-- DANGER this of course is cheating and can not be used in a real usecase
+import BlindtextModule (blindtext1Naturalism)
+
 {-
 Sorting a list (of Characters) using a genetic algorythm.
 The output should be readable for human, but for a nice
@@ -39,7 +43,7 @@ tail -5 output.txt
 
 -- stopconditions (they are very high)
 maxiters = 50000
-minFittness = 998248
+minFittness = blindtext1Naturalism
 timeLimit = 300 -- in seconds
 
 problem :: Problem Char
