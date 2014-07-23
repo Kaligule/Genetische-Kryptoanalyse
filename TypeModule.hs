@@ -1,5 +1,6 @@
-module TypeModule (S_n, Genome, Problem) where
+module TypeModule (S_n, Genome, Problem, Rand) where
 import Moo.GeneticAlgorithm.Binary (Genome)
+import Control.Monad.Mersenne.Random (Rand)
 
 -- list to be sorted
 type Problem a = [a]

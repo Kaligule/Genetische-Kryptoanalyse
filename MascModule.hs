@@ -2,12 +2,14 @@ module MascModule
 	(Direction (..)
 	, MascKey
 	, masc
+	, initializeMascGenome
 	) where
 
 import Data.Maybe (fromMaybe)
 -- the charList schould always be the cleartextversion of the alphabet
 import NaturalLanguageModule(charList)
 import Reordering (initializePermutatedGenome)
+import TypeModule (Genome, Rand)
 
 data Direction = Encrypt | Decrypt
 
@@ -27,5 +29,5 @@ justLookup :: (Eq a) => [(a,b)] -> b -> a -> b
 justLookup list defaultValue key = fromMaybe defaultValue (lookup key list)
 
 -- TODO: Better guesses for initialisation
---initializeMascGenome :: Int -> Rand [Genome Char] 
+initializeMascGenome :: Int -> Rand [Genome Char] 
 initializeMascGenome populationSize = initializePermutatedGenome populationSize charList
