@@ -43,7 +43,7 @@ period = 10
 genomesize = period
 -- stopconditions (they are very high)
 maxiters = 50000
-minFittness = 920
+minFittness = 100750
 timeLimit = 60 -- in seconds
 
 problem :: Problem Char

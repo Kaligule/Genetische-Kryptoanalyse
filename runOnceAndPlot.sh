@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # output$1.txt generieren
-time ./GenSort > output$1.txt
+time ./GenPerm > output$1.txt
 
 # plotten und pdf aufrauemen
 gnuplot -e "dataName ='output$1.txt'; pdfName='solvingPlots/output$1.pdf'" plotte_output.plt
