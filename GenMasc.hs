@@ -37,20 +37,16 @@ tail -5 output.txt
 ... and run it with ./runGensort
 -}
 
-
-
-period = 10
-genomesize = period
 -- stopconditions (they are very high)
 maxiters = 50000
-minFittness = 920
-timeLimit = 60 -- in seconds
+minFittness = 998248
+timeLimit = 300 -- in seconds
 
 problem :: Problem Char
 problem = cryptotext2
 
 popsize :: Int
-popsize = 9
+popsize = 1000
 
 selection :: SelectionOp a
 selection = rouletteSelect 5
