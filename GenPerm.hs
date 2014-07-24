@@ -4,7 +4,7 @@ import Control.Arrow (first)
 import Control.Monad (when)
 import Data.List (intercalate, sortBy, permutations)
 import Data.Ord (comparing)
-import NaturalLanguageModule  (naturalism)
+import NaturalLanguageModule  (naturalismDefault)
 import Moo.GeneticAlgorithm.Continuous (getRandomGenomes)
 import BlindtextModule (cryptotext1)
 import SnModule (makePeriodicS_n)
@@ -42,7 +42,7 @@ tail -5 output.txt
 period = 10
 genomesize = period
 -- stopconditions (they are very high)
-maxiters = 50000
+maxiters = 50
 minFittness = 100750
 timeLimit = 60 -- in seconds
 
@@ -74,7 +74,7 @@ elitesize = 1
 -- sortingFittnes ls == 1 is aquivalent to ls == sort ls
 natFitnes :: (Ord a) => Problem Char -> Genome a -> Double
 natFitnes problem genome =
-	naturalism (makePeriodicS_n genome problem)
+	naturalismDefault (makePeriodicS_n genome problem)
 			-- /P (fromIntegral . twoOutOf . length) problem
 	where
 		twoOutOf :: Int -> Int

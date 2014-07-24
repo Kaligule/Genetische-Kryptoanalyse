@@ -4,7 +4,7 @@ import Control.Arrow (first)
 import Control.Monad (when)
 import Data.List (intercalate, sortBy, permutations)
 import Data.Ord (comparing)
-import NaturalLanguageModule  (naturalism)
+import NaturalLanguageModule  (naturalismDefault)
 import Moo.GeneticAlgorithm.Continuous (getRandomGenomes)
 import BlindtextModule (cryptotext2)
 import MascModule (Direction (..), MascKey, masc, initializeMascGenome)
@@ -74,7 +74,7 @@ elitesize = 1
 -- sortingFittnes ls == 1 is aquivalent to ls == sort ls
 natFitnes :: Problem Char -> Genome Char -> Double
 natFitnes problem genome =
-	naturalism (masc Decrypt genome problem)
+	naturalismDefault (masc Decrypt genome problem)
 
 showGenome :: Problem Char -> Genome Char -> String
 showGenome problem genome = "Genome " ++ show genome
