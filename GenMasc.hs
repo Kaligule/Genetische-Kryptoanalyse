@@ -4,7 +4,8 @@ import Control.Arrow (first)
 import Control.Monad (when)
 import Data.List (intercalate, sortBy, permutations)
 import Data.Ord (comparing)
-import NaturalLanguageModule  (naturalismDefault)
+import System.ProgressBar (progressBar, percentage, msg, noLabel, exact, startProgress, incProgress)
+import NaturalLanguageModule  (naturalismDefault, naturalism)
 import Moo.GeneticAlgorithm.Continuous (getRandomGenomes)
 import BlindtextModule (cryptotext2)
 import MascModule (Direction (..), MascKey, masc, initializeMascGenome)
@@ -43,11 +44,19 @@ tail -5 output.txt
 
 -- stopconditions (they are very high)
 maxiters = 50000
-minFittness = blindtext1Naturalism
-timeLimit = 300 -- in seconds
+minFittness = blindtext1Naturalism evaluables
+timeLimit = 20 -- in seconds
 
 problem :: Problem Char
 problem = cryptotext2
+
+evaluables :: [(Criterion, Double)]
+evaluables = 	[ (Monogram		, 100)
+				, (Bigram		, 0)
+				, (Trigram		, 0)
+				, (Quadrigram	, 0)
+				, (Word			, 0)
+				]
 
 popsize :: Int
 popsize = 1000
@@ -74,7 +83,7 @@ elitesize = 1
 -- sortingFittnes ls == 1 is aquivalent to ls == sort ls
 natFitnes :: Problem Char -> Genome Char -> Double
 natFitnes problem genome =
-	naturalismDefault (masc Decrypt genome problem)
+	naturalism evaluables (masc Decrypt genome problem)
 
 showGenome :: Problem Char -> Genome Char -> String
 showGenome problem genome = "Genome " ++ show genome
@@ -85,7 +94,7 @@ showGenome problem genome = "Genome " ++ show genome
 							showBits :: [Bool] -> String
 							showBits = concatMap (show . fromEnum) 
 
-
+-- run the real algorythm
 geneticAlgorithm :: Problem Char -> IO (Population Char)
 geneticAlgorithm problem = do
 	runIO (initializeMascGenome popsize) $ loopIO
@@ -118,12 +127,17 @@ logStats problem iterno pop = do
 						, (braces . show) worst
 						, (take 10 . show . masc Decrypt best) problem
 						]
+
+	progressBar (msg "# Fittness") exact 122 (round $ natFitnes problem best) (round minFittness)
+	putStrLn ""
+	
 	where
 		braces :: String -> String
 		braces str = "(" ++ str ++ ")"
 
 main :: IO()
 main = do
+	putStrLn $ "# Fittnes to reach: " ++ (begining . show) minFittness 
 	finalPop <- geneticAlgorithm problem
 	let winner = takeGenome . head . bestFirst Maximizing $ finalPop
 	putStrLn $ showGenome problem winner

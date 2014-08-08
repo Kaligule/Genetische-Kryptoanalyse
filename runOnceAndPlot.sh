@@ -9,8 +9,8 @@ gnuplot -e "dataName ='output$1.txt'; pdfName='solvingPlots/output$1.pdf'" plott
 
 # ausgabe machen
 filelength=$(wc -l < output$1.txt)
-echo "Final Generation: $(($filelength - 6))"
-tail -5 output$1.txt
+echo "Final Generation: $(($filelength / 2 - 4))"
+tail -6 output$1.txt
 
 #aufraeumen
 rm output$1.txt
