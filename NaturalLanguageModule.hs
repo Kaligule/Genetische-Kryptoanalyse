@@ -6,7 +6,6 @@ module NaturalLanguageModule
 	, charList
 	) where
 
---import BigrammValueModule
 import NormalizeLanguageModule (normalizeLanguage)
 import Test.QuickCheck
 import Data.List (tails, inits, intersect)
@@ -14,42 +13,21 @@ import Data.Maybe (fromMaybe)
 import Data.List (zip4)
 import Data.List (nub)
 import TypeModule (Criterion(..))
-{-
 -- for testing
-import BlindtextModule (blindtext1, cryptotext1)
--}
+import Data.List (sort)
 
 evaluateWeightedBy :: (Criterion, Double) -> String -> Double 
-evaluateWeightedBy (Monogram, weight)	str = ( (*) weight . sum . map evaluateOneNgramm) ( getNgramms str :: [(Char)] )
-evaluateWeightedBy (Bigram, weight)		str = ( (*) weight . sum . map evaluateOneNgramm) ( getNgramms str :: [(Char,Char)] )
-evaluateWeightedBy (Trigram, weight)	str = ( (*) weight . sum . map evaluateOneNgramm) ( getNgramms str :: [(Char,Char,Char)] )
-evaluateWeightedBy (Quadrigram, weight)	str = ( (*) weight . sum . map evaluateOneNgramm) ( getNgramms str :: [(Char,Char,Char,Char)] )
-evaluateWeightedBy (Word, weight) 		str = ( (*) weight . sum . map evaluateOneNgramm) ( getNgramms str :: String )
+evaluateWeightedBy (Monogram, weight)	str = ( (*) weight . sum . map evaluateOneTextmolecule) ( getTextmolecules str :: [(Char)] )
+evaluateWeightedBy (Bigram, weight)		str = ( (*) weight . sum . map evaluateOneTextmolecule) ( getTextmolecules str :: [(Char,Char)] )
+evaluateWeightedBy (Trigram, weight)	str = ( (*) weight . sum . map evaluateOneTextmolecule) ( getTextmolecules str :: [(Char,Char,Char)] )
+evaluateWeightedBy (Quadrigram, weight)	str = ( (*) weight . sum . map evaluateOneTextmolecule) ( getTextmolecules str :: [(Char,Char,Char,Char)] )
+evaluateWeightedBy (Word, weight)		str = ( (*) weight . sum . map evaluateOneTextmolecule) ( getTextmolecules str :: String )
 
--- Class Ngramm
-
-class (Eq n) => Ngramm n where
-	getNgramms :: String -> [n]
-	valueList :: [(n, Double)]
-
-evaluateOneNgramm :: (Ngramm n) => n -> Double
-evaluateOneNgramm = fromMaybe 0 . flip lookup valueList
-
-maxWordLength :: Int
-maxWordLength = maximum . map (length . fst) $ wordValueList
-
-evaluateWords :: String -> Double
-evaluateWords = fromIntegral . length . intersect wordlist . sublists
-
---TODO: get long sublists away
-sublists :: [a] -> [[a]]
-sublists = filter (not . null). concatMap tails . inits
-
---TODO: Find good Sources
-wordlist :: [String]
-wordlist = (nub . map normalizeLanguage . words)
-	"and animal eat give global governmen human law legal life live person principles rights take torture universal world"
-	--"Human rights are moral principles that set out certain standards of human behaviour, and are regularly protected as legal rights in national and international law.[1] They are commonly understood as inalienable fundamental rights to which a person is inherently entitled simply because she or he is a human being.[2] Human rights are thus conceived as universal (applicable everywhere) and egalitarian (the same for everyone). The doctrine of human rights has been highly influential within international law, global and regional institutions. Policies of states and in the activities of non-governmental organizations and have become a cornerstone of public policy around the world. The idea of human rights[3] suggests, if the public discourse of peacetime global society can be said to have a common moral language, it is that of human rights. The strong claims made by the doctrine of human rights continue to provoke considerable skepticism and debates about the content, nature and justifications of human rights to this day. Indeed, the question of what is meant by a right is itself controversial and the subject of continued philosophical debate.[4] Many of the basic ideas that animated the human rights movement developed in the aftermath of the Second World War and the atrocities of The Holocaust, culminating in the adoption of the Universal Declaration of Human Rights in Paris by the United Nations General Assembly in 1948. The ancient world did not possess the concept of universal human rights.[5] The true forerunner of human rights discourse was the concept of natural rights which appeared as part of the medieval Natural law tradition that became prominent during the Enlightenment with such philosophers as John Locke, Francis Hutcheson, and Jean-Jacques Burlamaqui, and featured prominently in the English Bill of Rights and the political discourse"
+-- sublists of length smaller or equal n
+-- its basicly a (hopfully) better way to say
+-- sublistsBounded n = filter ((>=) n . length) . sublists 
+sublistsBounded :: Int -> [a] -> [[a]]
+sublistsBounded n = concatMap (tail . inits . take n) . tails
 
 naturalism :: [(Criterion, Double)] -> String -> Double
 naturalism criterions = sum . zipWith evaluateWeightedBy criterions . repeat . normalizeLanguage
@@ -67,33 +45,45 @@ naturalismDefault = naturalism defaultweights
 
 charList :: [Char]
 charList = map fst monogramValueList
--- (Char) is an Ngramm
 
-instance Ngramm (Char) where
+-- Class Textmolecule
+
+class (Eq n) => Textmolecule n where
+	getTextmolecules :: String -> [n]
+	valueList :: [(n, Double)]
+
+evaluateOneTextmolecule :: (Textmolecule n) => n -> Double
+evaluateOneTextmolecule = fromMaybe 0 . flip lookup valueList
+
+-- instances
+
+-- (Char) is an Textmolecule
+
+instance Textmolecule (Char) where
 	valueList = monogramValueList
-	getNgramms = id
+	getTextmolecules = id
 
--- (Char, Char) is an Ngramm
+-- (Char, Char) is an Textmolecule
 
-instance Ngramm (Char, Char) where
+instance Textmolecule (Char, Char) where
 	valueList = bigramValueList
-	getNgramms list = zip list (drop 1 list) 
+	getTextmolecules list = zip list (drop 1 list) 
 
--- (Char, Char, Char) is an Ngramm
+-- (Char, Char, Char) is an Textmolecule
 
-instance Ngramm (Char, Char, Char) where
+instance Textmolecule (Char, Char, Char) where
 	valueList = trigramValueList
-	getNgramms list = zip3 list (drop 1 list) (drop 2 list) 
+	getTextmolecules list = zip3 list (drop 1 list) (drop 2 list) 
 
--- (Char, Char, Char, Char) is an Ngramm
+-- (Char, Char, Char, Char) is an Textmolecule
 
-instance Ngramm (Char, Char, Char, Char) where
+instance Textmolecule (Char, Char, Char, Char) where
 	valueList = quadrigramValueList
-	getNgramms list = zip4 list (drop 1 list) (drop 2 list) (drop 3 list)
+	getTextmolecules list = zip4 list (drop 1 list) (drop 2 list) (drop 3 list)
 
-instance Ngramm String where
+instance Textmolecule String where
 	valueList = wordValueList
-	getNgramms = sublists
+	getTextmolecules = sublistsBounded ((maximum. map length . map fst) wordValueList)
 
 -- Lists found here: http://www.cryptograms.org/letter-frequencies.php
 
@@ -196,137 +186,189 @@ quadrigramValueList =
 	, (('M','E','N','T'), 0.223347)
 	]
 
+wordValueList :: [(String, Double)]
+wordValueList =
+		zip knownWordValueList 		(repeat 100)
+	++	zip assumedWordValuelist 	(repeat 10)
+	++	statisticWordValueList
+
+-- words known to be in the text
+knownWordValueList :: [String]
+knownWordValueList = 
+	[ "HUMAN"
+	, "RIGHTS"
+	, "ALL"
+	, "PEOPLE"
+	]
+
+-- words assumed to be in the text 
+assumedWordValuelist :: [String]
+assumedWordValuelist = (nub . map normalizeLanguage)
+	[ "and"
+	, "animal"
+	, "eat"
+	, "give"
+	, "global"
+	, "governmen"
+	, "human"
+	, "law"
+	, "legal"
+	, "life"
+	, "live"
+	, "person"
+	, "principles"
+	, "rights"
+	, "take"
+	, "torture"
+	, "universal"
+	, "world"
+	] 
+
 -- Source http://www.bckelk.ukfsn.org/words/uk1000n.html
-wordValueList = 
-  [ ("THE",		223066.9)
-  , ("AND",		156214.4)
-  , ("TO",		134044.8)
-  , ("OF",		125510.2)
-  , ("A",		99871.2)
-  , ("I",		86645.5)
-  , ("IN",		73206.5)
-  , ("WAS",		62339.6)
-  , ("HE",		57504.9)
-  , ("THAT",	55328.9)
-  , ("IT",		55284.2)
-  , ("HIS",		46378.8)
-  , ("HER",		46365.9)
-  , ("YOU",		44545.0)
-  , ("AS",		42712.6)
-  , ("HAD",		40343.2)
-  , ("WITH",	40303.7)
-  , ("FOR",		38117.0)
-  , ("SHE",		35959.2)
-  , ("NOT",		33885.7)
-  , ("AT",		31445.2)
-  , ("BUT",		30030.6)
-  , ("BE",		29962.6)
-  , ("MY",		28018.0)
-  , ("ON",		26543.8)
-  , ("HAVE",	26067.5)
-  , ("HIM",		24924.5)
-  , ("IS",		24423.9)
-  , ("SAID",	23592.0)
-  , ("ME",		23526.6)
-  , ("WHICH",	21234.0)
-  , ("BY",		20429.7)
-  , ("SO",		20209.2)
-  , ("THIS",	19618.8)
-  , ("ALL",		19296.7)
-  , ("FROM",	17356.9)
-  , ("THEY",	16650.5)
-  , ("NO",		16476.9)
-  , ("WERE",	16440.8)
-  , ("IF",		15640.4)
-  , ("WOULD",	15582.2)
-  , ("OR",		14437.0)
-  , ("WHEN",	14346.8)
-  , ("WHAT",	14319.9)
-  , ("THERE",	13358.1)
-  , ("BEEN",	13311.6)
-  , ("ONE",		13166.5)
-  , ("COULD",	12349.9)
-  , ("VERY",	12311.1)
-  , ("AN",		12009.5)
-  , ("WHO",		11302.9)
-  , ("THEM",	11062.1)
-  , ("MR",		10995.1)
-  , ("WE",		10951.1)
-  , ("NOW",		10939.3)
-  , ("MORE",	10900.1)
-  , ("OUT",		10857.6)
-  , ("DO",		10784.3)
-  , ("ARE",		10396.1)
-  , ("UP",		10375.7)
-  , ("THEIR",	10348.6)
-  , ("YOUR",	10297.8)
-  , ("WILL",	10001.0)
-  , ("LITTLE",	9597.5)
-  , ("THAN",	9222.8)
-  , ("THEN",	8905.1)
-  , ("SOME",	8808.3)
-  , ("INTO",	8630.4)
-  , ("ANY",		8514.5)
-  , ("WELL",	7883.9)
-  , ("MUCH",	7797.4)
-  , ("ABOUT",	7650.3)
-  , ("TIME",	7536.4)
-  , ("KNOW",	7531.8)
-  , ("SHOULD",	7518.1)
-  , ("MAN",		7494.0)
-  , ("DID",		7460.8)
-  , ("LIKE",	7435.2)
-  , ("UPON",	7415.2)
-  , ("SUCH",	7280.9)
-  , ("NEVER",	7229.0)
-  , ("ONLY",	6945.9)
-  , ("GOOD",	6920.3)
-  , ("HOW",		6787.9)
-  , ("BEFORE",	6754.1)
-  , ("OTHER",	6559.2)
-  , ("SEE",		6505.7)
-  , ("MUST",	6448.8)
-  , ("AM",		6246.5)
-  , ("OWN",		6233.4)
-  , ("COME",	6195.0)
-  , ("DOWN",	6130.4)
-  , ("SAY",		6001.2)
-  , ("AFTER",	5955.0)
-  , ("THINK",	5944.7)
-  , ("MADE",	5919.4)
-  , ("MIGHT",	5906.5)
-  , ("BEING",	5867.4)
-  , ("MRS",		5742.3)
-  , ("AGAIN",	5560.7)
+-- absolute value multiplied by 10^whatever
+statisticWordValueList = 
+  [ ("THE",		2.230669)
+  , ("AND",		1.562144)
+  , ("TO",		1.340448)
+  , ("OF",		1.255102)
+  , ("A",		0.998712)
+  , ("I",		0.866455)
+  , ("IN",		0.732065)
+  , ("WAS",		0.623396)
+  , ("HE",		0.575049)
+  , ("THAT",	0.553289)
+  , ("IT",		0.552842)
+  , ("HIS",		0.463788)
+  , ("HER",		0.463659)
+  , ("YOU",		0.445450)
+  , ("AS",		0.427126)
+  , ("HAD",		0.403432)
+  , ("WITH",	0.403037)
+  , ("FOR",		0.381170)
+  , ("SHE",		0.359592)
+  , ("NOT",		0.338857)
+  , ("AT",		0.314452)
+  , ("BUT",		0.300306)
+  , ("BE",		0.299626)
+  , ("MY",		0.280180)
+  , ("ON",		0.265438)
+  , ("HAVE",	0.260675)
+  , ("HIM",		0.249245)
+  , ("IS",		0.244239)
+  , ("SAID",	0.235920)
+  , ("ME",		0.235266)
+  , ("WHICH",	0.212340)
+  , ("BY",		0.204297)
+  , ("SO",		0.202092)
+  , ("THIS",	0.196188)
+  , ("ALL",		0.192967)
+  , ("FROM",	0.173569)
+  , ("THEY",	0.166505)
+  , ("NO",		0.164769)
+  , ("WERE",	0.164408)
+  , ("IF",		0.156404)
+  , ("WOULD",	0.155822)
+  , ("OR",		0.144370)
+  , ("WHEN",	0.143468)
+  , ("WHAT",	0.143199)
+  , ("THERE",	0.133581)
+  , ("BEEN",	0.133116)
+  , ("ONE",		0.131665)
+  , ("COULD",	0.123499)
+  , ("VERY",	0.123111)
+  , ("AN",		0.120095)
+  , ("WHO",		0.113029)
+  , ("THEM",	0.110621)
+  , ("MR",		0.109951)
+  , ("WE",		0.109511)
+  , ("NOW",		0.109393)
+  , ("MORE",	0.109001)
+  , ("OUT",		0.108576)
+  , ("DO",		0.107843)
+  , ("ARE",		0.103961)
+  , ("UP",		0.103757)
+  , ("THEIR",	0.103486)
+  , ("YOUR",	0.102978)
+  , ("WILL",	0.100010)
+  , ("LITTLE",	0.095975)
+  , ("THAN",	0.092228)
+  , ("THEN",	0.089051)
+  , ("SOME",	0.088083)
+  , ("INTO",	0.086304)
+  , ("ANY",		0.085145)
+  , ("WELL",	0.078839)
+  , ("MUCH",	0.077974)
+  , ("ABOUT",	0.076503)
+  , ("TIME",	0.075364)
+  , ("KNOW",	0.075318)
+  , ("SHOULD",	0.075181)
+  , ("MAN",		0.074940)
+  , ("DID",		0.074608)
+  , ("LIKE",	0.074352)
+  , ("UPON",	0.074152)
+  , ("SUCH",	0.072809)
+  , ("NEVER",	0.072290)
+  , ("ONLY",	0.069459)
+  , ("GOOD",	0.069203)
+  , ("HOW",		0.067879)
+  , ("BEFORE",	0.067541)
+  , ("OTHER",	0.065592)
+  , ("SEE",		0.065057)
+  , ("MUST",	0.064488)
+  , ("AM",		0.062465)
+  , ("OWN",		0.062334)
+  , ("COME",	0.061950)
+  , ("DOWN",	0.061304)
+  , ("SAY",		0.060012)
+  , ("AFTER",	0.059550)
+  , ("THINK",	0.059447)
+  , ("MADE",	0.059194)
+  , ("MIGHT",	0.059065)
+  , ("BEING",	0.058674)
+  , ("MRS",		0.057423)
+  , ("AGAIN",	0.055607)
   ]
 
 
 
-{-
+
+
+
+
+
+
+
+
+
+
+
 -- Testing
 
 main = do
-	print "Cleartext:"
-	print . naturalism $ blindtext1
-	print "Kryptotext:"
-	print . naturalism $ cryptotext1
-
-	--testall
+	testall
 
 testall :: IO()
 testall = do
 		quickCheck prop_evaluateEmptyString
 		quickCheck prop_normalize_normalize
 		quickCheck prop_sublists_length
+		quickCheck prop_sublistsBounded
 		--return ()
 
 prop_evaluateEmptyString :: Bool
-prop_evaluateEmptyString = naturalism "" == 0
+prop_evaluateEmptyString = naturalismDefault "" == 0
 
 prop_normalize_normalize :: String -> Bool
 prop_normalize_normalize str = (normalizeLanguage . normalizeLanguage) str == normalizeLanguage str
 
 prop_sublists_length :: [Char] -> Bool
-prop_sublists_length lst = (length . sublists) lst == sum [0..length lst]
+prop_sublists_length lst = (length . sublistsBounded maxlength) lst == sum [0..maxlength]
+	where
+		maxlength = length lst
 
--}
+prop_sublistsBounded :: Int -> [Char] -> Bool
+prop_sublistsBounded n list = (sort . sublistsBounded n) list == (sort . filter ((>=) n . length) . sublists) list
+	where
+		-- allsublists
+		sublists :: [a] -> [[a]]
+		sublists = filter (not . null). concatMap tails . inits

@@ -39,12 +39,12 @@ tail -5 output.txt
 
 
 
-period = 10
+period = 26
 genomesize = period
 -- stopconditions (they are very high)
-maxiters = 50
+maxiters = 1000000
 minFittness = 100750
-timeLimit = 60 -- in seconds
+timeLimit = 1200 -- in seconds
 
 problem :: Problem Char
 problem = cryptotext1

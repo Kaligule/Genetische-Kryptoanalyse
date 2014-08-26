@@ -44,22 +44,22 @@ tail -5 output.txt
 
 -- stopconditions (they are very high)
 maxiters = 50000
-minFittness = blindtext1Naturalism evaluables
-timeLimit = 20 -- in seconds
+minFittness = blindtext1Naturalism weightedCriterions
+timeLimit = 10 -- in seconds
 
 problem :: Problem Char
 problem = cryptotext2
 
-evaluables :: [(Criterion, Double)]
-evaluables = 	[ (Monogram		, 100)
-				, (Bigram		, 0)
-				, (Trigram		, 0)
-				, (Quadrigram	, 0)
-				, (Word			, 0)
-				]
+weightedCriterions :: WeightedCriterions
+weightedCriterions = 	[ (Monogram		, 100)
+						, (Bigram		, 10)
+						, (Trigram		, 9)
+						, (Quadrigram	, 8)
+						, (Word			, 50)
+						]
 
 popsize :: Int
-popsize = 1000
+popsize = 100
 
 selection :: SelectionOp a
 selection = rouletteSelect 5
@@ -73,17 +73,14 @@ crossover =
 
 mutation :: MutationOp a
 mutation =
-	combineMutationOps [shiftMutate, completeShiftMutate]
-	--shiftMutate
-	--listswapMutate
-	--blockSwapMutate
+	combineMutationOps [shiftMutate, swapMutate]
 
 elitesize = 1
 
 -- sortingFittnes ls == 1 is aquivalent to ls == sort ls
 natFitnes :: Problem Char -> Genome Char -> Double
 natFitnes problem genome =
-	naturalism evaluables (masc Decrypt genome problem)
+	naturalism weightedCriterions (masc Decrypt genome problem)
 
 showGenome :: Problem Char -> Genome Char -> String
 showGenome problem genome = "Genome " ++ show genome

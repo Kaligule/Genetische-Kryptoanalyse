@@ -13,4 +13,4 @@ echo "Final Generation: $(($filelength / 2 - 4))"
 tail -6 output$1.txt
 
 #aufraeumen
-rm output$1.txt
+#rm output$1.txt

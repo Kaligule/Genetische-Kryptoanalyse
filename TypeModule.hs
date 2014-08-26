@@ -1,4 +1,4 @@
-module TypeModule (S_n, Genome, Problem, Rand, Criterion(..)) where
+module TypeModule (S_n, Genome, Problem, Rand, Criterion(..), WeightedCriterions) where
 import Moo.GeneticAlgorithm.Binary (Genome)
 import Control.Monad.Mersenne.Random (Rand)
 
@@ -9,3 +9,5 @@ type Problem a = [a]
 type S_n a = [a] -> [a]
 
 data Criterion = Monogram | Bigram | Trigram | Quadrigram | Word
+
+type WeightedCriterions = [(Criterion, Double)]
