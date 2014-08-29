@@ -12,7 +12,7 @@ umlaut '\223' 	= "ss"
 umlaut '\228' 	= "ae"
 umlaut '\246' 	= "oe"
 umlaut '\252' 	= "ue"
-umlaut c 		= [c]
+umlaut c 		= return c
 
 -- Which charakters are allowed in a cryptotext?
 allowedCharakters :: [Char]
