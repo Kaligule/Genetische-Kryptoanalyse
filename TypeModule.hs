@@ -1,4 +1,4 @@
-module TypeModule (S_n, Genome, Problem, Rand, Criterion(..), WeightedCriterions) where
+module TypeModule (S_n, Genome, Problem, Rand, Criterion(..), Analysation(..), WeightedCriterion, Documentation(..)) where
 import Moo.GeneticAlgorithm.Binary (Genome)
 import Control.Monad.Mersenne.Random (Rand)
 
@@ -10,4 +10,8 @@ type S_n a = [a] -> [a]
 
 data Criterion = Monogram | Bigram | Trigram | Quadrigram | Word
 
-type WeightedCriterions = [(Criterion, Double)]
+data Analysation = ByWeight | ByScyline
+
+type WeightedCriterion = (Criterion, Analysation, Double)
+
+data Documentation = CLI | Plot deriving (Eq, Show)

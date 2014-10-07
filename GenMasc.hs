@@ -45,21 +45,21 @@ tail -5 output.txt
 -- stopconditions (they are very high)
 maxiters = 50000
 minFittness = blindtext1Naturalism weightedCriterions
-timeLimit = 10 -- in seconds
+timeLimit = 300 -- in seconds
 
 problem :: Problem Char
 problem = cryptotext2
 
-weightedCriterions :: WeightedCriterions
-weightedCriterions = 	[ (Monogram		, 100)
-						, (Bigram		, 10)
-						, (Trigram		, 9)
-						, (Quadrigram	, 8)
-						, (Word			, 50)
+weightedCriterions :: [WeightedCriterion]
+weightedCriterions = 	[ (Monogram		, ByWeight, 100)
+						, (Bigram		, ByWeight, 10)
+						, (Trigram		, ByWeight, 9)
+						, (Quadrigram	, ByWeight, 8)
+						, (Word			, ByWeight, 50)
 						]
 
 popsize :: Int
-popsize = 100
+popsize = 10
 
 selection :: SelectionOp a
 selection = rouletteSelect 5
@@ -76,6 +76,9 @@ mutation =
 	combineMutationOps [shiftMutate, swapMutate]
 
 elitesize = 1
+
+documentation :: Documentation
+documentation = Plot
 
 -- sortingFittnes ls == 1 is aquivalent to ls == sort ls
 natFitnes :: Problem Char -> Genome Char -> Double
@@ -95,38 +98,39 @@ showGenome problem genome = "Genome " ++ show genome
 geneticAlgorithm :: Problem Char -> IO (Population Char)
 geneticAlgorithm problem = do
 	runIO (initializeMascGenome popsize) $ loopIO
-		[DoEvery 1 (logStats problem), TimeLimit timeLimit]
+		[DoEvery 1 (logStats documentation problem), TimeLimit timeLimit]
 		(Or (Generations maxiters) (IfObjective (any (>= minFittness))))
 		nextGen
 		where
 			nextGen :: StepGA Rand Char
-			nextGen = nextGeneration Maximizing fitness selection elitesize crossover mutation
+			nextGen = nextSteadyState 8 Maximizing fitness selection crossover mutation
+			
+-- nextGen = nextGeneration Maximizing fitness selection elitesize crossover mutation
 
 fitness :: [Genome Char] -> Population Char
 fitness = map (\ genome -> (genome, natFitnes problem genome))
 
 
 -- Gnuplotreadable statistics for 1 Generation
-logStats :: Problem Char -> Int -> Population Char -> IO ()
-logStats problem iterno pop = do
-	when (iterno == 0) $
-		putStrLn "# generation medianValue bestValue"
+logStats :: Documentation -> Problem Char -> Int -> Population Char -> IO ()
+logStats docu problem iterno pop = do
 	let gs = map takeGenome . bestFirst Maximizing $ pop  -- genomes
 	let best = head gs
 	let median = gs !! (length gs `div` 2)
 	let worst = last gs
-	putStrLn $ unwords	[ show iterno
-						, (begining . show . natFitnes problem) best
-						, (braces . show) best
-						, (begining . show . natFitnes problem) median
-						, (braces . show) median
-						, (begining . show . natFitnes problem) worst
-						, (braces . show) worst
-						, (take 10 . show . masc Decrypt best) problem
-						]
-
-	progressBar (msg "# Fittness") exact 122 (round $ natFitnes problem best) (round minFittness)
-	putStrLn ""
+	if (docu == Plot) then
+		putStrLn $ unwords	[ show iterno
+							, (begining . show . natFitnes problem) best
+							, (braces . show) best
+							, (begining . show . natFitnes problem) median
+							, (braces . show) median
+							, (begining . show . natFitnes problem) worst
+							, (braces . show) worst
+							, (take 10 . show . masc Decrypt best) problem
+							]
+	else do
+		progressBar (msg "# Fittness") exact 122 (round $ natFitnes problem best) (round minFittness)
+		putStrLn ""
 	
 	where
 		braces :: String -> String
@@ -135,6 +139,8 @@ logStats problem iterno pop = do
 main :: IO()
 main = do
 	putStrLn $ "# Fittnes to reach: " ++ (begining . show) minFittness 
+	when (documentation == Plot) $
+		putStrLn "# generation medianValue bestValue"
 	finalPop <- geneticAlgorithm problem
 	let winner = takeGenome . head . bestFirst Maximizing $ finalPop
 	putStrLn $ showGenome problem winner

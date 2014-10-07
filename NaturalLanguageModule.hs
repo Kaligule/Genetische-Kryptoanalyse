@@ -3,6 +3,7 @@ module NaturalLanguageModule
 	( naturalismDefault
 	, naturalism
 	, Criterion(..)
+	, Analysation(..)
 	, charList
 	) where
 
@@ -13,78 +14,71 @@ import Data.List (tails, inits, intersect)
 import Data.Maybe (fromMaybe)
 import Data.List (zip4)
 import Data.List (nub)
-import TypeModule (Criterion(..))
+import Data.List (group)
+import TypeModule (WeightedCriterion ,Criterion(..), Analysation(..))
 -- for testing
 import Data.List (sort)
 
-naturalism :: [(Criterion, Double)] -> String -> Double
+naturalism :: [WeightedCriterion] -> String -> Double
 naturalism criterions = sum . zipWith evaluateWeightedBy criterions . repeat . normalizeLanguage
 	where
-		evaluateWeightedBy :: (Criterion, Double) -> String -> Double 
-		evaluateWeightedBy (Monogram, weight)	str = ( (*) weight . sum . map evaluateOneTextmolecule) ( getTextmolecules str :: [(Char)] )
-		evaluateWeightedBy (Bigram, weight)		str = ( (*) weight . sum . map evaluateOneTextmolecule) ( getTextmolecules str :: [(Char,Char)] )
-		evaluateWeightedBy (Trigram, weight)	str = ( (*) weight . sum . map evaluateOneTextmolecule) ( getTextmolecules str :: [(Char,Char,Char)] )
-		evaluateWeightedBy (Quadrigram, weight)	str = ( (*) weight . sum . map evaluateOneTextmolecule) ( getTextmolecules str :: [(Char,Char,Char,Char)] )
-		evaluateWeightedBy (Word, weight)		str = ( (*) weight . sum . map evaluateOneTextmolecule) ( getTextmolecules str :: String )
+		evaluateWeightedBy :: WeightedCriterion -> String -> Double 
+		evaluateWeightedBy (criterion, analysation, weight) = (*) weight . naturalismBy analysation criterion 
+
+		naturalismBy :: Analysation -> Criterion -> String -> Double
+		naturalismBy analysation Monogram	= evaluateCatalog monogramValueList		analysation . catalogise . getMonograms
+		naturalismBy analysation Bigram		= evaluateCatalog bigramValueList		analysation . catalogise . getBigrams
+		naturalismBy analysation Trigram	= evaluateCatalog trigramValueList		analysation . catalogise . getTrigrams
+		naturalismBy analysation Quadrigram	= evaluateCatalog quadrigramValueList	analysation . catalogise . getQuadrigrams
+		naturalismBy analysation Word		= evaluateCatalog wordValueList			analysation . catalogise . getWords
 		
-		evaluateOneTextmolecule :: (Textmolecule n, Ord n) => n -> Double
-		evaluateOneTextmolecule = fromMaybe 0 . flip Map.lookup (Map.fromList valueList)
+		getMonograms		= id
+		getBigrams list		= zip list (drop 1 list) 
+		getTrigrams list	= zip3 list (drop 1 list) (drop 2 list) 
+		getQuadrigrams list	= zip4 list (drop 1 list) (drop 2 list) (drop 3 list)
+		getWords			= sublistsBounded ((maximum. map length . map fst) wordValueList)
+				where
+					-- sublists of length smaller or equal n
+					-- its basicly a (hopfully) better way to say
+					-- sublistsBounded n = filter ((>=) n . length) . sublists 
+					sublistsBounded :: Int -> [a] -> [[a]]
+					sublistsBounded n = concatMap (tail . inits . take n) . tails
+
+		evaluateCatalog :: (Ord a) => [(a, Double)] -> Analysation  -> [(a, Int)] -> Double
+		evaluateCatalog valuelist ByWeight = sum . map (\(x, n) -> (cleverLookup valuelist x) * (fromIntegral n))
+			where
+				cleverLookup :: (Ord n, Eq n) => [(n, Double)] -> n -> Double
+				cleverLookup list = fromMaybe 0 . flip Map.lookup (Map.fromList list)
+		evaluateCatalog valuelist ByScyline = norm1 (map snd valuelist) . ratios . map (fromIntegral . snd)
+			where
+				norm1 :: [Double] -> [Double] -> Double
+				norm1 xs ys = sum (zipWith (\x y -> abs (x-y)) xs ys)
+
+				-- the result should sum up to 1
+				ratios :: [Double] -> [Double]
+				ratios list = map divByTotal list
+					where
+						total :: Double
+						total = sum list
+				
+						divByTotal :: Double -> Double
+						divByTotal n = n / total
 
 naturalismDefault :: String -> Double
 naturalismDefault = naturalism defaultweights
 	where
-		defaultweights :: [(Criterion, Double)]
-		defaultweights =	[ (Monogram		, 10)
-							, (Bigram		, 1)
-							, (Trigram		, 1)
-							, (Quadrigram	, 1)
-							, (Word			, 0.01)
+		defaultweights :: [WeightedCriterion]
+		defaultweights =	[ (Monogram		, ByWeight, 10)
+							, (Bigram		, ByWeight, 1)
+							, (Trigram		, ByWeight, 1)
+							, (Quadrigram	, ByWeight, 1)
+							, (Word			, ByWeight, 0.01)
 							]
 
-charList :: [Char]
-charList = map fst monogramValueList
+--place for optimisation
+catalogise :: (Eq a, Ord a) => [a] -> [(a, Int)]
+catalogise = map (\l -> (head l, length l)) . group . sort
 
--- Class Textmolecule
-
-class (Eq n) => Textmolecule n where
-	getTextmolecules :: String -> [n]
-	valueList :: [(n, Double)]
-
--- instances
-
--- (Char) is an Textmolecule
-
-instance Textmolecule (Char) where
-	valueList = monogramValueList
-	getTextmolecules = id
-
--- (Char, Char) is an Textmolecule
-
-instance Textmolecule (Char, Char) where
-	valueList = bigramValueList
-	getTextmolecules list = zip list (drop 1 list) 
-
--- (Char, Char, Char) is an Textmolecule
-
-instance Textmolecule (Char, Char, Char) where
-	valueList = trigramValueList
-	getTextmolecules list = zip3 list (drop 1 list) (drop 2 list) 
-
--- (Char, Char, Char, Char) is an Textmolecule
-
-instance Textmolecule (Char, Char, Char, Char) where
-	valueList = quadrigramValueList
-	getTextmolecules list = zip4 list (drop 1 list) (drop 2 list) (drop 3 list)
-
-instance Textmolecule String where
-	valueList = wordValueList
-	getTextmolecules = sublistsBounded ((maximum. map length . map fst) wordValueList)
-		where
-			-- sublists of length smaller or equal n
-			-- its basicly a (hopfully) better way to say
-			-- sublistsBounded n = filter ((>=) n . length) . sublists 
-			sublistsBounded :: Int -> [a] -> [[a]]
-			sublistsBounded n = concatMap (tail . inits . take n) . tails
 
 -- Lists found here: http://www.cryptograms.org/letter-frequencies.php
 
@@ -117,6 +111,8 @@ monogramValueList =
 	, ('Q', 0.117571)
 	, ('Z', 0.079130)
 	]
+charList :: [Char]
+charList = map fst monogramValueList
 bigramValueList :: [((Char, Char), Double)]
 bigramValueList =
 	[ (('T','H'), 3.882543)
@@ -347,6 +343,8 @@ statisticWordValueList =
 -- Testing
 
 main = do
+	putStrLn "It compiles"
+{-
 	testall
 
 testall :: IO()
@@ -363,7 +361,6 @@ prop_evaluateEmptyString = naturalismDefault "" == 0
 prop_normalize_normalize :: String -> Bool
 prop_normalize_normalize str = (normalizeLanguage . normalizeLanguage) str == normalizeLanguage str
 
-{-
 prop_sublists_length :: [Char] -> Bool
 prop_sublists_length lst = (length . sublistsBounded maxlength) lst == sum [0..maxlength]
 	where
