@@ -5,7 +5,7 @@ import Control.Monad (when)
 import Data.List (intercalate, sortBy, permutations)
 import Data.Ord (comparing)
 import System.ProgressBar (progressBar, percentage, msg, noLabel, exact, startProgress, incProgress)
-import NaturalLanguageModule  (naturalismDefault, naturalism)
+import NaturalLanguageModule  (naturalismDefault, naturalism, defaultCriterions)
 import Moo.GeneticAlgorithm.Continuous (getRandomGenomes)
 import BlindtextModule (cryptotext2)
 import MascModule (Direction (..), MascKey, masc, initializeMascGenome)
@@ -44,22 +44,14 @@ tail -5 output.txt
 
 -- stopconditions (they are very high)
 maxiters = 50000
-minFittness = blindtext1Naturalism weightedCriterions
-timeLimit = 300 -- in seconds
+minFittness = blindtext1Naturalism defaultCriterions
+timeLimit = 30 -- in seconds
 
 problem :: Problem Char
 problem = cryptotext2
 
-weightedCriterions :: [WeightedCriterion]
-weightedCriterions = 	[ (Monogram		, ByWeight, 100)
-						, (Bigram		, ByWeight, 10)
-						, (Trigram		, ByWeight, 9)
-						, (Quadrigram	, ByWeight, 8)
-						, (Word			, ByWeight, 50)
-						]
-
 popsize :: Int
-popsize = 10
+popsize = 7
 
 selection :: SelectionOp a
 selection = rouletteSelect 5
@@ -80,10 +72,9 @@ elitesize = 1
 documentation :: Documentation
 documentation = Plot
 
--- sortingFittnes ls == 1 is aquivalent to ls == sort ls
 natFitnes :: Problem Char -> Genome Char -> Double
 natFitnes problem genome =
-	naturalism weightedCriterions (masc Decrypt genome problem)
+	naturalism defaultCriterions (masc Decrypt genome problem)
 
 showGenome :: Problem Char -> Genome Char -> String
 showGenome problem genome = "Genome " ++ show genome
@@ -103,9 +94,9 @@ geneticAlgorithm problem = do
 		nextGen
 		where
 			nextGen :: StepGA Rand Char
-			nextGen = nextSteadyState 8 Maximizing fitness selection crossover mutation
+			--nextGen = nextSteadyState 8 Maximizing fitness selection crossover mutation
 			
--- nextGen = nextGeneration Maximizing fitness selection elitesize crossover mutation
+			nextGen = nextGeneration Maximizing fitness selection elitesize crossover mutation
 
 fitness :: [Genome Char] -> Population Char
 fitness = map (\ genome -> (genome, natFitnes problem genome))
@@ -138,7 +129,7 @@ logStats docu problem iterno pop = do
 
 main :: IO()
 main = do
-	putStrLn $ "# Fittnes to reach: " ++ (begining . show) minFittness 
+	putStrLn $ "# Fittnes to reach: " ++ (show) minFittness 
 	when (documentation == Plot) $
 		putStrLn "# generation medianValue bestValue"
 	finalPop <- geneticAlgorithm problem

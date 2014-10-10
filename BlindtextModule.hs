@@ -1,5 +1,5 @@
 module BlindtextModule (blindtext1, blindtext1Naturalism, cryptotext1, cryptotext2) where
-import NaturalLanguageModule  (naturalismDefault, naturalism)
+import NaturalLanguageModule  (defaultCriterions, naturalism)
 
 import NormalizeLanguageModule (normalizeLanguage)
 import SnModule (makePeriodicS_n)
@@ -20,23 +20,21 @@ cryptotext1 = makePeriodicS_n [26,25..1] . normalizeLanguage $ blindtext1
 -- masc
 cryptotext2 = masc Encrypt "ZYXWVUTSRQPONMLKJIHGFEDCBA" . normalizeLanguage $ blindtext1
 
-
-cosutmCriteria :: [WeightedCriterion]
-cosutmCriteria =		[ (Monogram		, ByWeight, 100)
-						, (Bigram		, ByWeight, 10)
-						, (Trigram		, ByWeight, 9)
-						, (Quadrigram	, ByWeight, 8)
-						, (Word			, ByWeight, 50)
-						]
-
 main = do
-	print "Naturalism (default) of Cleartext:"
-	print . naturalismDefault $ blindtext1
-	print "Naturalism (default) of Kryptotext1:"
-	print . naturalismDefault $ cryptotext1
-	print "Naturalism (default) of Kryptotext2:"
-	print . naturalismDefault $ cryptotext2
 
-	print "Naturalism (costum) of Kryptotext2:"
-	print . naturalism cosutmCriteria $ cryptotext2
+	putStrLn "-- Cleartext --"
+	putStrLn "naturalism (defaultCriterions):"
+	print . naturalism defaultCriterions $ blindtext1
+	putStrLn "blindtext1Naturalism (defaultCriterions):"
+	print . blindtext1Naturalism $ defaultCriterions
+	putStrLn ""
+	
+	putStrLn "-- Permutation --"
+	putStrLn "naturalism (default):"
+	print . naturalism defaultCriterions $ cryptotext1
+	putStrLn ""
 
+	putStrLn "-- Masc --"
+	putStrLn "naturalism (default):"
+	print . naturalism defaultCriterions $ cryptotext2
+	putStrLn ""

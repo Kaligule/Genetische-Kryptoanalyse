@@ -5,6 +5,7 @@ module NaturalLanguageModule
 	, Criterion(..)
 	, Analysation(..)
 	, charList
+	, defaultCriterions
 	) where
 
 import NormalizeLanguageModule (normalizeLanguage)
@@ -67,15 +68,16 @@ naturalism criterions = sum . zipWith evaluateWeightedBy criterions . repeat . n
 						divByTotal n = n / total
 
 naturalismDefault :: String -> Double
-naturalismDefault = naturalism defaultweights
-	where
-		defaultweights :: [WeightedCriterion]
-		defaultweights =	[ (Monogram		, ByWeight, 10)
-							, (Bigram		, ByWeight, 1)
-							, (Trigram		, ByWeight, 1)
-							, (Quadrigram	, ByWeight, 1)
-							, (Word			, ByWeight, 0.01)
-							]
+naturalismDefault = naturalism defaultCriterions
+
+defaultCriterions :: [WeightedCriterion]
+defaultCriterions = 	[ (Monogram		, ByWeight, 100)
+						, (Bigram		, ByWeight, 10)
+						, (Trigram		, ByWeight, 9)
+						, (Quadrigram	, ByWeight, 8)
+						, (Word			, ByWeight, 50)
+						]
+
 
 -- place for optimisation
 -- they items are put in the predefined buckets and the buckets are counted
