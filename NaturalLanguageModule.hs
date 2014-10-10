@@ -27,11 +27,11 @@ naturalism criterions = sum . zipWith evaluateWeightedBy criterions . repeat . n
 		evaluateWeightedBy (criterion, analysation, weight) = (*) weight . naturalismBy analysation criterion 
 
 		naturalismBy :: Analysation -> Criterion -> String -> Double
-		naturalismBy analysation Monogram	= evaluateCatalog monogramValueList		analysation . catalogise . getMonograms
-		naturalismBy analysation Bigram		= evaluateCatalog bigramValueList		analysation . catalogise . getBigrams
-		naturalismBy analysation Trigram	= evaluateCatalog trigramValueList		analysation . catalogise . getTrigrams
-		naturalismBy analysation Quadrigram	= evaluateCatalog quadrigramValueList	analysation . catalogise . getQuadrigrams
-		naturalismBy analysation Word		= evaluateCatalog wordValueList			analysation . catalogise . getWords
+		naturalismBy analysation Monogram	= evaluateCatalog monogramValueList		analysation . catalogise (map fst monogramValueList)	. getMonograms
+		naturalismBy analysation Bigram		= evaluateCatalog bigramValueList		analysation . catalogise (map fst bigramValueList)		. getBigrams
+		naturalismBy analysation Trigram	= evaluateCatalog trigramValueList		analysation . catalogise (map fst trigramValueList)		. getTrigrams
+		naturalismBy analysation Quadrigram	= evaluateCatalog quadrigramValueList	analysation . catalogise (map fst quadrigramValueList)	. getQuadrigrams
+		naturalismBy analysation Word		= evaluateCatalog wordValueList			analysation . catalogise (map fst wordValueList)		. getWords
 		
 		getMonograms		= id
 		getBigrams list		= zip list (drop 1 list) 
@@ -77,9 +77,17 @@ naturalismDefault = naturalism defaultweights
 							, (Word			, ByWeight, 0.01)
 							]
 
---place for optimisation
-catalogise :: (Eq a, Ord a) => [a] -> [(a, Int)]
-catalogise = map (\l -> (head l, length l)) . group . sort
+-- place for optimisation
+-- they items are put in the predefined buckets and the buckets are counted
+catalogise :: (Eq a, Ord a) => [a] -> [a] -> [(a, Int)]
+-- catalogise _ = map (\l -> (head l, length l)) . group . sort
+catalogise buckets = Map.toList . foldl putInBucket (makeEmptyBuckets buckets)
+	where
+		makeEmptyBuckets :: (Ord a) => [a] -> Map.Map a Int
+		makeEmptyBuckets buckets = Map.fromList (zip buckets (repeat 0))
+
+		putInBucket ::  (Ord a) => Map.Map a Int -> a -> Map.Map a Int
+		putInBucket = flip (Map.adjust (+1))
 
 -- Lists found here: http://www.cryptograms.org/letter-frequencies.php
 
