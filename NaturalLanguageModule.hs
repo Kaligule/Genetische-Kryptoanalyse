@@ -15,6 +15,7 @@ import Data.Maybe (fromMaybe)
 import Data.List (zip4)
 import Data.List (nub)
 import Data.List (group)
+import Data.Graph.Inductive.Query.Monad (mapSnd)
 import TypeModule (WeightedCriterion ,Criterion(..), Analysation(..))
 -- for testing
 import Data.List (sort)
@@ -49,6 +50,7 @@ naturalism criterions = sum . zipWith evaluateWeightedBy criterions . repeat . n
 			where
 				cleverLookup :: (Ord n, Eq n) => [(n, Double)] -> n -> Double
 				cleverLookup list = fromMaybe 0 . flip Map.lookup (Map.fromList list)
+		evaluateCatalog valuelist ByExpWeight = evaluateCatalog (map (mapSnd exp) valuelist) ByWeight
 		evaluateCatalog valuelist ByScyline = norm1 (map snd valuelist) . ratios . map (fromIntegral . snd)
 			where
 				norm1 :: [Double] -> [Double] -> Double
@@ -78,7 +80,6 @@ naturalismDefault = naturalism defaultweights
 --place for optimisation
 catalogise :: (Eq a, Ord a) => [a] -> [(a, Int)]
 catalogise = map (\l -> (head l, length l)) . group . sort
-
 
 -- Lists found here: http://www.cryptograms.org/letter-frequencies.php
 

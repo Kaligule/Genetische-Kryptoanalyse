@@ -10,7 +10,7 @@ type S_n a = [a] -> [a]
 
 data Criterion = Monogram | Bigram | Trigram | Quadrigram | Word
 
-data Analysation = ByWeight | ByScyline
+data Analysation = ByWeight | ByScyline | ByExpWeight
 
 type WeightedCriterion = (Criterion, Analysation, Double)
 
