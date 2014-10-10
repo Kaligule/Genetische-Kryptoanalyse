@@ -6,7 +6,7 @@ main = do
 	if (validateAnalysis analyses == False)
 		then error "The Files where not done with the same target value."
 	else do
-		writeFile "outputCombination.txt" (combineAnalysis analyses)
+		writeFile "solvingLogs/outputCombination.txt" (combineAnalysis analyses)
 
 data Analyses = Analyses 	{ name :: String
 							, fittnessToReach :: Double
@@ -16,7 +16,7 @@ inputFileName :: [String]
 inputFileName = map fileName [1..4]
 	where
 		fileName :: Int -> String
-		fileName n = "output" ++ show n ++ ".txt"
+		fileName n = "solvingLogs/output" ++ show n ++ ".txt"
 
 analyseFile :: String -> IO (Analyses)
 analyseFile filepath = do
