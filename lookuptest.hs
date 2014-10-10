@@ -1,3 +1,13 @@
+
+{-
+-- Doku to  Criterion: http://www.serpentine.com/criterion/tutorial.html
+Usage of this file:
+ghc --make -O2 lookuptest.hs
+./lookuptest --output lookuptest.html
+firefox lookuptest.html
+-}
+
+
 import NormalizeLanguageModule (normalizeLanguage)
 import Data.List (nub)
 import Data.Maybe (fromMaybe)
