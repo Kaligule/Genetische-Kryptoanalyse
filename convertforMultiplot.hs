@@ -24,14 +24,13 @@ analyseFile filepath = do
 	let fileLines = lines file
 	return $ Analyses {name = filepath, fittnessToReach = (getMax . head) fileLines, valueList = getValues fileLines}
 	where
-		getMax :: String -> Double
-		getMax = read . last . words
-	
 		getValues :: [String] -> [Double]
 		getValues = map (read . (!! 1) . words) . validLines
 	
 		validLines :: [String] -> [String]
-		validLines = filter (\l -> elem (head l) "123456789")
+		validLines = filter (not . ('#' ==) . (head))
+getMax :: String -> Double
+getMax = read . last . words
 
 validateAnalysis :: [Analyses] -> Bool
 validateAnalysis = allEqual . map fittnessToReach

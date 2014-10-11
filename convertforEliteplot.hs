@@ -6,14 +6,17 @@ import BlindtextModule (cryptotext2)
 main = do
 	file <- readFile inputFilePath
 	let analysation = unlines. analyseKeys . getKeysFromFile $ file
-	writeFile "solvingLogs/outputElite.txt" analysation
+	writeFile ("solvingLogs/output" ++ show numberOfFileToAnalyse ++ "Elite.txt") analysation
+
+numberOfFileToAnalyse = 1
 
 -- TODO: Import problem from better place
 problem :: String
 problem = cryptotext2
 
 inputFilePath :: String
-inputFilePath = "solvingLogs/output1.txt"
+inputFilePath = "solvingLogs/output" ++ show numberOfFileToAnalyse ++ ".txt" 
+
 
 getKeysFromFile :: String -> [MascKey]
 getKeysFromFile = map getValues . filter validLine . lines
