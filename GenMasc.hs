@@ -77,10 +77,10 @@ natFitnes problem genome =
 	naturalism defaultCriterions (masc Decrypt genome problem)
 
 showGenome :: Problem Char -> Genome Char -> String
-showGenome problem genome = "Genome " ++ show genome
-						++ "\nmakes " ++ (begining . show) problem 
-						++ "\nto " ++ (begining . show . masc Decrypt genome) problem
-						++ "\n(natFitnes: " ++ show (natFitnes problem genome) ++ ")"
+showGenome problem genome = "# Genome " ++ show genome
+						++ "\n# makes " ++ (begining . show) problem 
+						++ "\n# to " ++ (begining . show . masc Decrypt genome) problem
+						++ "\n# (natFitnes: " ++ show (natFitnes problem genome) ++ ")"
 						where
 							showBits :: [Bool] -> String
 							showBits = concatMap (show . fromEnum) 

@@ -82,10 +82,10 @@ natFitnes problem genome =
 		twoOutOf n = n - 1 + twoOutOf (n-1)
 
 showGenome :: (Ord a, Show a) => Problem Char -> Genome a -> String
-showGenome problem genome = "Genome " ++ show genome
-						++ "\nmakes " ++ (begining . show) problem 
-						++ "\nto " ++ (begining . show . makePeriodicS_n genome) problem
-						++ "\n(natFitnes: " ++ show (natFitnes problem genome) ++ ")"
+showGenome problem genome = "#Genome " ++ show genome
+						++ "\n#makes " ++ (begining . show) problem 
+						++ "\n#to " ++ (begining . show . makePeriodicS_n genome) problem
+						++ "\n#(natFitnes: " ++ show (natFitnes problem genome) ++ ")"
 						where
 							showBits :: [Bool] -> String
 							showBits = concatMap (show . fromEnum) 
