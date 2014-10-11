@@ -71,12 +71,13 @@ naturalismDefault :: String -> Double
 naturalismDefault = naturalism defaultCriterions
 
 defaultCriterions :: [WeightedCriterion]
-defaultCriterions = 	[ (Monogram		, ByWeight, 100)
-						, (Bigram		, ByWeight, 10)
-						, (Trigram		, ByWeight, 9)
-						, (Quadrigram	, ByWeight, 8)
-						, (Word			, ByWeight, 50)
-						]
+defaultCriterions = 
+	[ (Monogram		, ByExpWeight, 0.02)
+	, (Bigram		, ByExpWeight, 40)
+	, (Trigram		, ByExpWeight, 1000)
+	, (Quadrigram	, ByExpWeight, 10000)
+	, (Word			, ByExpWeight, 10)
+	]
 
 
 -- place for optimisation
@@ -196,8 +197,8 @@ quadrigramValueList =
 
 wordValueList :: [(String, Double)]
 wordValueList =
-		zip knownWordValueList 		(repeat 100)
-	++	zip assumedWordValuelist 	(repeat 10)
+		zip knownWordValueList 		(repeat 20)
+	++	zip assumedWordValuelist 	(repeat 5)
 	++	statisticWordValueList
 
 -- words known to be in the text
