@@ -45,7 +45,7 @@ tail -5 output.txt
 -- stopconditions (they are very high)
 maxiters = 50000
 minFittness = blindtext1Naturalism defaultCriterions
-timeLimit = 30 -- in seconds
+timeLimit = 600 -- in seconds
 
 problem :: Problem Char
 problem = cryptotext2
@@ -111,11 +111,11 @@ logStats docu problem iterno pop = do
 	let worst = last gs
 	if (docu == Plot) then
 		putStrLn $ unwords	[ show iterno
-							, (begining . show . natFitnes problem) best
+							, (show . natFitnes problem) best
 							, (braces . show) best
-							, (begining . show . natFitnes problem) median
+							, (show . natFitnes problem) median
 							, (braces . show) median
-							, (begining . show . natFitnes problem) worst
+							, (show . natFitnes problem) worst
 							, (braces . show) worst
 							, (take 10 . show . masc Decrypt best) problem
 							]
