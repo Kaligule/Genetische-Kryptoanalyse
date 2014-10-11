@@ -8,9 +8,9 @@ type Problem a = [a]
 -- a memeber of S_n should change the order of the elements, not the elements itself 
 type S_n a = [a] -> [a]
 
-data Criterion = Monogram | Bigram | Trigram | Quadrigram | Word
+data Criterion = Monogram | Bigram | Trigram | Quadrigram | Word deriving (Show)
 
-data Analysation = ByWeight | ByScyline | ByExpWeight
+data Analysation = ByWeight | ByScyline | ByExpWeight deriving (Show)
 
 type WeightedCriterion = (Criterion, Analysation, Double)
 
