@@ -2,21 +2,24 @@ import NaturalLanguageModule (defaultCriterions, naturalism)
 import TypeModule (WeightedCriterion, Criterion(..), Analysation(..))
 import MascModule (Direction (..), MascKey, masc)
 import BlindtextModule (cryptotext2)
+import System.Environment (getArgs)
+import Control.Monad (liftM)
 
 main = do
-	file <- readFile inputFilePath
+	numberOfFileToAnalyse <- liftM (readInt . head) getArgs
+	file <- readFile (inputFilePath numberOfFileToAnalyse)
 	let analysation = unlines. analyseKeys . getKeysFromFile $ file
 	writeFile ("solvingLogs/output" ++ show numberOfFileToAnalyse ++ "Elite.txt") analysation
-
-numberOfFileToAnalyse = 1
 
 -- TODO: Import problem from better place
 problem :: String
 problem = cryptotext2
 
-inputFilePath :: String
-inputFilePath = "solvingLogs/output" ++ show numberOfFileToAnalyse ++ ".txt" 
+inputFilePath :: Int -> String
+inputFilePath n = "solvingLogs/output" ++ show n ++ ".txt" 
 
+readInt :: String -> Int
+readInt = read
 
 getKeysFromFile :: String -> [MascKey]
 getKeysFromFile = map getValues . filter validLine . lines

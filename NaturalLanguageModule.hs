@@ -1,11 +1,13 @@
 {-# LANGUAGE FlexibleInstances #-}
-module NaturalLanguageModule
+ module NaturalLanguageModule
 	( naturalismDefault
 	, naturalism
 	, Criterion(..)
 	, Analysation(..)
 	, charList
 	, defaultCriterions
+	, catalogiseMonogramms -- just for plotting
+	, monogramValueList -- just for plottinh
 	) where
 
 import NormalizeLanguageModule (normalizeLanguage)
@@ -91,6 +93,9 @@ catalogise buckets = Map.toList . foldl putInBucket (makeEmptyBuckets buckets)
 
 		putInBucket ::  (Ord a) => Map.Map a Int -> a -> Map.Map a Int
 		putInBucket = flip (Map.adjust (+1))
+
+catalogiseMonogramms :: String -> [(Char, Int)]
+catalogiseMonogramms = catalogise charList
 
 -- Lists found here: http://www.cryptograms.org/letter-frequencies.php
 
