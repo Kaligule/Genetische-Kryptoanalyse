@@ -6,13 +6,9 @@ import System.Environment (getArgs)
 import Control.Monad (liftM)
 main :: IO()
 main = do
-	putStrLn "start converting"
 	numberString <- liftM head getArgs
-	putStrLn $ "got numberString: " ++ numberString
 	logfile <- readFile ("solvingLogs/output" ++ numberString ++ ".txt") 
-	putStrLn "got the logfile"
 	let key = getKeyFromLogfile logfile
-	putStrLn $ "The key I analyse for Monograms is " ++ key 
 	writeFile ("solvingLogs/output" ++ numberString ++ "MonogramAnalysis.txt") (analyse key)
 
 getKeyFromLogfile :: String -> String
