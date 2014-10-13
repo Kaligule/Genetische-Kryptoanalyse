@@ -10,7 +10,8 @@ then
 fi
 
 anzahlDurchlaufe="$1"
-
+echo "Dollar 1 ist: $1"
+echo "anzahlDurchlaufe ist $anzahlDurchlaufe"
 ghc --make -O2 -outputdir=ghc_outputdir GenMasc.hs
 echo "compiled GenMasc.hs"
 seq $anzahlDurchlaufe | parallel --gnu ./runOnceAndPlotMasc.sh
@@ -20,16 +21,28 @@ seq $anzahlDurchlaufe | parallel --gnu ./runOnceAndPlotMasc.sh
 echo "plotted Multiplot"
 
 ghc --make -O2 -outputdir=ghc_outputdir convertforEliteplot.hs
-ghc --make -O2 -outputdir=ghc_outputdir convertForMonogramAnalysis.hs
 for i in `seq 1 $anzahlDurchlaufe`;
 do
-	./plotEliteOutput.sh "$i"
+	nameStock="output"$i"Elite"
+	touch solvingLogs/$nameStock.txt
+	./convertforEliteplot "$i"
+	gnuplot -e "dataName ='solvingLogs/$nameStock.txt'; pdfName='solvingPlots/$nameStock.pdf'" plotEliteOutput.plt
     echo "Eliteplot $i plotted"
-    ./plotMonogramAnalysis.sh "$i"
-    echo "MonogramAnalysis $i plotted"
 done
-rm convertForMonogramAnalysis
 rm convertforEliteplot
 
+# moving things to ghc_outputdir seems to break things
+ghc --make -O2 convertforMonogramAnalysis.hs
+echo "anzahlDurchlaufe ist anzahlDurchlaufe"
+for i in `seq 1 $anzahlDurchlaufe`;
+do
+	nameStock="output"$i"MonogramAnalysis"
+	touch solvingLogs/$nameStock.txt
+	./convertforMonogramAnalysis "$i"
+	# runhaskell convertforMonogramAnalysis.hs "$i"
+	gnuplot -e "dataName ='solvingLogs/$nameStock.txt'; pdfName='solvingPlots/$nameStock.pdf'" plotMonogramAnalysis.plt
+    echo "MonogramAnalysis $i plotted"
+done
+rm convertforMonogramAnalysis convertforMonogramAnalysis.hi convertforMonogramAnalysis.o
 
 rm GenMasc
