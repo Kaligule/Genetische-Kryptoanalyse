@@ -7,7 +7,7 @@ import Data.Ord (comparing)
 import NaturalLanguageModule  (naturalismDefault)
 import Moo.GeneticAlgorithm.Continuous (getRandomGenomes)
 import BlindtextModule (cryptotext1)
-import SnModule (makePeriodicS_n)
+import SnModule (perm, Direction (..), PermKey)
 import TypeModule
 import Reordering (combineMutationOps, completeShiftMutate, swapMutate, listswapMutate, revMutate, blockSwapMutate, shuffelMutate, shiftMutate, initializeEnumGenome, edgeCrossover)
 {-
@@ -72,19 +72,19 @@ mutation =
 elitesize = 1
 
 -- sortingFittnes ls == 1 is aquivalent to ls == sort ls
-natFitnes :: (Ord a) => Problem Char -> Genome a -> Double
+natFitnes :: Problem Char -> PermKey -> Double
 natFitnes problem genome =
-	naturalismDefault (makePeriodicS_n genome problem)
+	naturalismDefault (perm Decrypt genome problem)
 			-- /P (fromIntegral . twoOutOf . length) problem
 	where
 		twoOutOf :: Int -> Int
 		twoOutOf 1 = 0
 		twoOutOf n = n - 1 + twoOutOf (n-1)
 
-showGenome :: (Ord a, Show a) => Problem Char -> Genome a -> String
+showGenome :: Problem Char -> PermKey -> String
 showGenome problem genome = "#Genome " ++ show genome
 						++ "\n#makes " ++ (begining . show) problem 
-						++ "\n#to " ++ (begining . show . makePeriodicS_n genome) problem
+						++ "\n#to " ++ (begining . show . perm Decrypt genome) problem
 						++ "\n#(natFitnes: " ++ show (natFitnes problem genome) ++ ")"
 						where
 							showBits :: [Bool] -> String
@@ -121,7 +121,7 @@ logStats problem iterno pop = do
 						, (braces . show) median
 						, (begining . show . natFitnes problem) worst
 						, (braces . show) worst
-						, (take 10 . show . makePeriodicS_n best) problem
+						, (take 10 . show . perm Decrypt best) problem
 						]
 	where
 		braces :: String -> String

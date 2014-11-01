@@ -2,7 +2,7 @@ module BlindtextModule (blindtext1, blindtext1Naturalism, cryptotext1, cryptotex
 import NaturalLanguageModule  (defaultCriterions, naturalism)
 
 import NormalizeLanguageModule (normalizeLanguage)
-import SnModule (makePeriodicS_n)
+import SnModule (perm)
 import MascModule (Direction (..), MascKey, masc)
 import TypeModule (Criterion(..), WeightedCriterion, Analysation(..))
 
@@ -15,7 +15,7 @@ blindtext1Naturalism evaluables = naturalism evaluables blindtext1
 
 -- mutation
 ---[3,2,1]
-cryptotext1 = makePeriodicS_n [26,25..1] . normalizeLanguage $ blindtext1
+cryptotext1 = perm Encrypt [26,25..1] . normalizeLanguage $ blindtext1
 
 -- masc
 cryptotext2 = masc Encrypt "ZYXWVUTSRQPONMLKJIHGFEDCBA" . normalizeLanguage $ blindtext1
