@@ -25,51 +25,51 @@ Main funktion: Try to read a List of paths and  paint the Diagram of the Mutatio
 
 > main = do
 >   input <- getLine
->   let (maxNode, parents, pregnant, children, specialNodes, gaps) = (read input) :: (Int, [Tour], [Tour], [Tour], [Int], [(Int,Int)])
->   mainWith (makeTournament (maxNode, parents, pregnant, children, specialNodes, gaps))
+>   let tourLists = ((read input) :: [[RichTour]])
+>   mainWith (makeTournament tourLists)
 
 Mutation and Crossover get different funktions
 A Mutation has 1 before and 1 after, A Crossover has many befores and 1 after
 
-> makeTournament :: (Int, [Tour], [Tour], [Tour], [Int], [(Int, Int)]) -> Diagram B R2
-> makeTournament (maxNode, [before], [between], [after], specialNodes, []) = mutation maxNode before between after specialNodes
-> makeTournament (maxNode, parents, [], [child], specialNodes, []) = crossover maxNode parents child specialNodes
-> makeTournament (maxNode, [constant], [], [], specialNodes, []) = tournament maxNode constant specialNodes
+> makeTournament :: [[RichTour]] -> Diagram B R2
+> makeTournament = (concatY) . map (concatX) . map (map tournament) 
 
+Like ||| but better (for me) and for ists
 
-> mutation :: Int -> Tour -> Tour -> Tour -> [Int] ->  Diagram B R2
-> mutation maxNode before between after specialNodes = tournament maxNode before specialNodes
->                         ||| strutX 1
->                         ||| tournament maxNode between specialNodes
->                         ||| strutX 1
->                         ||| tournament maxNode after specialNodes
-
-A Crossover has many (most of the time 2) parents and 1 child
-
-> crossover :: Int -> [Tour] -> Tour -> [Int] -> Diagram B R2
-> crossover maxNode parents child specialNodes =
->    (=== child_Diagram)
->    . (=== strutY 0.3)
->    . (=== hrule (numberParents * 1.2 * (1 + circleRadius))) 
->    . (=== strutY 0.5)
->    -- . showOrigin
-
->    . translateX (
+> concatX :: [Diagram B R2] -> Diagram B R2
+> concatX list =
+>    translateX (
 >      ( * (1 + circleRadius + 0.5))
->      . fromIntegral
 >      . ((-) 1)
->      . length
->      $ parents)
+>      $ listLength
+>      )
 
 >    . foldl1 (|||)
 >    . intersperse (strutX 1)
->    . map (flip (tournament maxNode) specialNodes)
->    $ parents
+>    $ list
 >   where
->     numberParents :: Double
->     numberParents = fromIntegral . length $ parents
->     
->     child_Diagram = tournament maxNode child specialNodes
+>     listLength :: Double
+>     listLength = fromIntegral . length $ list
+
+Like === but better (for me) and for Lists
+
+> concatY :: [Diagram B R2] -> Diagram B R2
+> concatY list =
+>    foldl1 (===)
+>    . intersperse
+>      (
+>        strutY 0.3
+>        ===
+>        hrule (listLength * 1.2 * (1 + circleRadius))
+>        ===
+>        strutY 0.5
+>      )
+>    $ list
+>   where
+>     listLength :: Double
+>     listLength = fromIntegral . length $ list
+
+
 
 A circle wirh a number in it. The name is the number. The radius is the circleRadius
 
@@ -82,6 +82,7 @@ A circle wirh a number in it. The name is the number. The radius is the circleRa
 >            # fc white
 >            # lc (if special then red else black)
 >            # named n
+>            
 > circleRadius :: Double
 > circleRadius = 0.17
 
@@ -90,10 +91,11 @@ I don't want arrowheads or any decoration - fix this when I have Internet
 > arrowOpts = with -- & gaps  .~ small
 >                  & headLength .~ Global 0
 >
-> tournament :: Int -> Tour -> [Int] ->  Diagram B R2
-> tournament n path specialNodes = decorateTrail myPolygon (nodeList n specialNodes)
+> tournament :: RichTour ->  Diagram B R2
+> tournament (n, path, invisibles, specialNodes) =
+>                   decorateTrail myPolygon (nodeList n specialNodes)
 >                   -- # applyAll [connectOutside' arrowOpts j k | (j,k) <- pathpairs]
->                   # applyAll [connectOutside' arrowOpts j k | (j,k) <- pathpairs]
+>                   # applyAll [connectOutside' arrowOpts j k | (j,k) <- pathpairs, not $ (j,k) `elem` invisibles]
 >                   -- # translate (r2 (0.5, -0.5))
 >                   # translate (fromDirection ((1/(fromIntegral n)) @@ rad))
 >                   -- # showOrigin
