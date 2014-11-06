@@ -47,8 +47,9 @@ shiftMutate xs = do
 
 completeShiftMutate :: MutationOp a
 completeShiftMutate xs = do
-	numberOfShifts <- getInt
-	return $ (iterate leftShift xs) !! (numberOfShifts `mod` (length xs))
+        decide <- getBool
+        let shift = if decide then rightShift else leftShift
+        return (shift xs)
 
 blockSwapMutate :: MutationOp a
 blockSwapMutate xs = do
