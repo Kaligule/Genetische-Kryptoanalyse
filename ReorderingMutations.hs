@@ -32,11 +32,6 @@ revMutate xs = do
 	[x1,x2,x3] <- randomSplitIn 3 xs
 	return $ x1 ++ reverse x2 ++ x3
 
-blockSwapMutate :: MutationOp a
-blockSwapMutate xs = do
-	[x1,x2] <- randomSplitIn 2 xs
-	return $ x2 ++ x1
-
 shuffelMutate :: MutationOp a
 shuffelMutate xs = do 
 	[x1,x2,x3] <- randomSplitIn 3 xs
@@ -50,11 +45,15 @@ shiftMutate xs = do
 	[x1,x2,x3] <- randomSplitIn 3 xs
 	return $ x1 ++ shift x2 ++ x3
 
-
 completeShiftMutate :: MutationOp a
 completeShiftMutate xs = do
 	numberOfShifts <- getInt
 	return $ (iterate leftShift xs) !! (numberOfShifts `mod` (length xs))
+
+blockSwapMutate :: MutationOp a
+blockSwapMutate xs = do
+	[x1,x2] <- randomSplitIn 2 xs
+	return $ x2 ++ x1
 
 rightShift :: [a] -> [a]
 rightShift [] = []
