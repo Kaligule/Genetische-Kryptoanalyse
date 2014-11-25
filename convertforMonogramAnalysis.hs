@@ -9,7 +9,6 @@ main = do
 	numberString <- liftM head getArgs
 	logfile <- readFile ("solvingLogs/output" ++ numberString ++ ".txt") 
 	let key = getKeyFromLogfile logfile
-	putStrLn $ "solvingLogs/output" ++ numberString ++ "MonogramAnalysis.txt"
 	writeFile ("solvingLogs/output" ++ numberString ++ "MonogramAnalysis.txt") (analyse key)
 
 getKeyFromLogfile :: String -> String

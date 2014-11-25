@@ -9,11 +9,9 @@ import Data.Maybe (fromMaybe)
 -- the charList schould always be the cleartextversion of the alphabet
 import NaturalLanguageModule(charList)
 import Reordering (initializePermutatedGenome)
-import TypeModule (Genome, Rand)
+import TypeModule (Genome, Rand, Direction(..), MascKey)
 
-data Direction = Encrypt | Decrypt
 
-type MascKey = [Char] 
 
 fallbackChar :: Char 
 fallbackChar = '_'

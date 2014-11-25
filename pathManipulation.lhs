@@ -12,14 +12,15 @@ firefox pathManipulation.svg
 Imports for Diagrams
 
 > import Diagrams.Prelude
-> import Diagrams.Backend.SVG.CmdLine
+> -- import Diagrams.Backend.SVG.CmdLine
+> import Diagrams
 
 Other imports
 
 > import Data.List
 
 > type Tour = [Int]
-> type RichTour = (Int, Tour, [(Int, Int)], [Int])
+> type RichTour = (Int, [Int], Tour, [(Int, Int)], [(Int, Int)])
 
 Main funktion: Try to read a List of paths and  paint the Diagram of the Mutation or the crossover
 
@@ -75,27 +76,34 @@ A circle wirh a number in it. The name is the number. The radius is the circleRa
 
 > node :: Bool ->  Int -> Diagram B R2
 > node special n = text (show n)
->            # fontSize (Local 0.17)
->            # fontSizeN 0.05
+>            # fontSize (Global 0.17) -- this numbers get really smal in pdf, but not in svg. Weired. perhaps the backend cairo is better then svg.
+>            # fontSizeN 0.05         -- why do I have Fontsize twice?
 >            # fc black
 >          <> circle circleRadius
 >            # fc white
 >            # lc (if special then red else black)
 >            # named n
+> 
 >            
 > circleRadius :: Double
 > circleRadius = 0.17
 
 I don't want arrowheads or any decoration - fix this when I have Internet
 
-> arrowOpts = with -- & gaps  .~ small
->                  & headLength .~ Global 0
+> 
+> arrowOptsSimple = with -- & gaps  .~ small
+>                   & arrowHead .~ noHead
 >
+> arrowOptsDashed = with -- & gaps  .~ small
+>                   & arrowHead .~ noHead
+>                   & shaftStyle %~ dashingG [0.04, 0.02] 0
+> 
 > tournament :: RichTour ->  Diagram B R2
-> tournament (n, path, invisibles, specialNodes) =
+> tournament (n, specialNodes, path, invisibles, dashed) =
 >                   decorateTrail myPolygon (nodeList n specialNodes)
->                   -- # applyAll [connectOutside' arrowOpts j k | (j,k) <- pathpairs]
->                   # applyAll [connectOutside' arrowOpts j k | (j,k) <- pathpairs, not $ (j,k) `elem` invisibles]
+>                   -- # applyAll [connectOutside' arrowOptsSimple j k | (j,k) <- pathpairs]
+>                   # applyAll [connectOutside' arrowOptsSimple j k | (j,k) <- pathpairs, not $ (j,k) `elem` (invisibles ++ dashed)]
+>                   # applyAll [connectOutside' arrowOptsDashed j k | (j,k) <- dashed] -- dashed
 >                   -- # translate (r2 (0.5, -0.5))
 >                   # translate (fromDirection ((1/(fromIntegral n)) @@ rad))
 >                   -- # showOrigin
