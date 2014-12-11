@@ -21,7 +21,9 @@ import Data.List (group)
 import Data.Graph.Inductive.Query.Monad (mapSnd)
 import TypeModule (WeightedCriterion ,Criterion(..), Analysation(..))
 -- for testing
-import Data.List (sort)
+import Data.List (sort, sortBy)
+import Data.Function (on)
+import Data.Ord (comparing)
 
 naturalism :: [WeightedCriterion] -> String -> Double
 naturalism criterions = sum . zipWith evaluateWeightedBy criterions . repeat . normalizeLanguage
@@ -77,7 +79,7 @@ defaultCriterions =
 	[ (Monogram		, ByExpWeight, 0.02)
 	, (Bigram		, ByExpWeight, 40)
 	, (Trigram		, ByExpWeight, 1000)
-	, (Quadrigram	, ByExpWeight, 10000)
+	, (Quadrigram	        , ByExpWeight, 10000)
 	, (Word			, ByExpWeight, 10)
 	]
 
@@ -96,6 +98,20 @@ catalogise buckets = Map.toList . foldl putInBucket (makeEmptyBuckets buckets)
 
 catalogiseMonogramms :: String -> [(Char, Int)]
 catalogiseMonogramms = catalogise charList
+
+
+--skyline
+
+skylinediff :: (Eq a, Ord a, Num b) => [(a,b)] -> [(a,b)] -> b
+skylinediff x y = sum . map (diff . map snd) . groupBy (on (==) fst) . sortBy (comparing fst) $ x ++ y
+
+
+
+diff :: (Num a) => [a] -> a
+diff [] = 0
+diff [x] = x
+diff [x,y] = abs (x-y)
+diff _ = undefined "Something went wrong at diff: Was called with more then two arguments."
 
 -- Lists found here: http://www.cryptograms.org/letter-frequencies.php
 
