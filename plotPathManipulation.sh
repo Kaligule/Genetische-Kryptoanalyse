@@ -1,47 +1,75 @@
-# Nomanipulation
+
+function printArray {
+    for item in ${array[*]}
+    do
+	printf "%s\n" $item
+    done
+}
+
+
+
+
+
+# noManipulation
 nameStock=$"noManipulation"
-result=$"1\n2\n3\n4\n5\n6\n7\n8\n9\n10\11"
-echo -e $result > tmp.txt
+array=(1 2 3 4 5 6 7 8 9 10 11)
+printArray $array > tmp.txt
 gnuplot -e "dataName ='tmp.txt'; pdfName='Lyx/Pictures/Generated/${nameStock}Hist.pdf'" plotOrder.plt
 
 
 
 # swapMutate
 nameStock=$"swapMutate"
-result=$"1\n2\n3\n10\n5\n6\n7\n8\n9\n4\n11"
-echo -e $result > tmp.txt
+array=(1 2 3 10 5 6 7 8 9 4 11)
+printArray $array > tmp.txt
 gnuplot -e "dataName ='tmp.txt'; pdfName='Lyx/Pictures/Generated/${nameStock}Hist.pdf'" plotOrder.plt
 
 
 
 # listSwapMutate
 nameStock=$"listSwapMutate"
-result=$"1\n2\n9\n10\n6\n7\n8\n3\n4\n5\n11"
-echo -e $result > tmp.txt
+array=(1 2 9 10 6 7 8 3 4 5 11) 
+printArray $array > tmp.txt
 gnuplot -e "dataName ='tmp.txt'; pdfName='Lyx/Pictures/Generated/${nameStock}Hist.pdf'" plotOrder.plt
 
 
 
 # revMutate
 nameStock=$"revMutate"
-result=$"1\n2\n3\n4\n8\n7\n6\n5\n9\n10\n11"
-echo -e $result > tmp.txt
+array=(1 2 3 4 8 7 6 5 9 10 11)
+printArray $array > tmp.txt
 gnuplot -e "dataName ='tmp.txt'; pdfName='Lyx/Pictures/Generated/${nameStock}Hist.pdf'" plotOrder.plt
 
 
 
 # blockSwapMutate
 nameStock=$"blockSwapMutate"
-result=$"\n9\n10\n11\n1\n2\n3\n4\n5\n6\n7\n8"
-echo -e $result > tmp.txt
+array=(9 10 11 1 2 3 4 5 6 7 8)
+printArray $array > tmp.txt
 gnuplot -e "dataName ='tmp.txt'; pdfName='Lyx/Pictures/Generated/${nameStock}Hist.pdf'" plotOrder.plt
 
 
 
 # shuffelMutate
 nameStock=$"shuffelMutate"
-result=$"1\n2\n3\n6\n8\n5\n7\n4\n9\n10\n11"
-echo -e $result > tmp.txt
+array=(1 2 3 6 8 5 7 4 9 10 11)
+printArray $array > tmp.txt
+gnuplot -e "dataName ='tmp.txt'; pdfName='Lyx/Pictures/Generated/${nameStock}Hist.pdf'" plotOrder.plt
+
+
+
+# shiftMutate
+nameStock=$"shiftMutate"
+array=(1 2 4 5 6 3 7 8 9 10 11)
+printArray $array > tmp.txt
+gnuplot -e "dataName ='tmp.txt'; pdfName='Lyx/Pictures/Generated/${nameStock}Hist.pdf'" plotOrder.plt
+
+
+
+# completeShiftMutate
+nameStock=$"completeShiftMutate"
+array=(11 1 2 3 4 5 6 7 8 9 10)
+printArray $array > tmp.txt
 gnuplot -e "dataName ='tmp.txt'; pdfName='Lyx/Pictures/Generated/${nameStock}Hist.pdf'" plotOrder.plt
 
 
