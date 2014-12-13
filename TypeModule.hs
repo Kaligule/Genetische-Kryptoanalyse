@@ -1,4 +1,4 @@
-module TypeModule (S_n, Genome, Problem, Rand, Criterion(..), Analysation(..), WeightedCriterion, Documentation(..), Direction(..), MascKey, PermKey) where
+module TypeModule (S_n, Genome, Problem, Rand, Criterion(..), Analysation(..), WeightedCriterion, Direction(..), MascKey, PermKey) where
 import Moo.GeneticAlgorithm.Binary (Genome)
 import Control.Monad.Mersenne.Random (Rand)
 
@@ -13,8 +13,6 @@ data Criterion = Monogram | Bigram | Trigram | Quadrigram | Word deriving (Show)
 data Analysation = ByWeight | ByScyline | ByExpWeight deriving (Show)
 
 type WeightedCriterion = (Criterion, Analysation, Double)
-
-data Documentation = CLI | Plot deriving (Eq, Show)
 
 data Direction = Encrypt | Decrypt
 

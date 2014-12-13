@@ -4,7 +4,6 @@ import Control.Arrow (first)
 import Control.Monad (when)
 import Data.List (intercalate, sortBy, permutations)
 import Data.Ord (comparing)
-import System.ProgressBar (progressBar, percentage, msg, noLabel, exact, startProgress, incProgress)
 import NaturalLanguageModule  (naturalismDefault, naturalism, defaultCriterions)
 import Moo.GeneticAlgorithm.Continuous (getRandomGenomes)
 import BlindtextModule (cryptotext2)
@@ -69,9 +68,6 @@ mutation =
 
 elitesize = 1
 
-documentation :: Documentation
-documentation = Plot
-
 natFitnes :: Problem Char -> Genome Char -> Double
 natFitnes problem genome =
 	naturalism defaultCriterions (masc Decrypt genome problem)
@@ -89,7 +85,7 @@ showGenome problem genome = "# Genome " ++ show genome
 geneticAlgorithm :: Problem Char -> IO (Population Char)
 geneticAlgorithm problem = do
 	runIO (initializeMascGenome popsize) $ loopIO
-		[DoEvery 1 (logStats documentation problem), TimeLimit timeLimit]
+		[DoEvery 1 (logStats problem), TimeLimit timeLimit]
 		(Or (Generations maxiters) (IfObjective (any (>= minFittness))))
 		nextGen
 		where
@@ -103,26 +99,21 @@ fitness = map (\ genome -> (genome, natFitnes problem genome))
 
 
 -- Gnuplotreadable statistics for 1 Generation
-logStats :: Documentation -> Problem Char -> Int -> Population Char -> IO ()
-logStats docu problem iterno pop = do
+logStats :: Problem Char -> Int -> Population Char -> IO ()
+logStats  problem iterno pop = do
 	let gs = map takeGenome . bestFirst Maximizing $ pop  -- genomes
 	let best = head gs
 	let median = gs !! (length gs `div` 2)
 	let worst = last gs
-	if (docu == Plot) then
-		putStrLn $ unwords	[ show iterno
-							, (show . natFitnes problem) best
-							, (braces . show) best
-							, (show . natFitnes problem) median
-							, (braces . show) median
-							, (show . natFitnes problem) worst
-							, (braces . show) worst
-							, (take 10 . show . masc Decrypt best) problem
-							]
-	else do
-		progressBar (msg "# Fittness") exact 122 (round $ natFitnes problem best) (round minFittness)
-		putStrLn ""
-	
+	putStrLn $ unwords	[ show iterno
+						, (show . natFitnes problem) best
+						, (braces . show) best
+						, (show . natFitnes problem) median
+						, (braces . show) median
+						, (show . natFitnes problem) worst
+						, (braces . show) worst
+						, (take 10 . show . masc Decrypt best) problem
+						]
 	where
 		braces :: String -> String
 		braces str = "(" ++ str ++ ")"
@@ -130,8 +121,7 @@ logStats docu problem iterno pop = do
 main :: IO()
 main = do
 	putStrLn $ "# Fittnes to reach: " ++ (show) minFittness 
-	when (documentation == Plot) $
-		putStrLn "# generation medianValue bestValue"
+	putStrLn "# generation medianValue bestValue"
 	finalPop <- geneticAlgorithm problem
 	let winner = takeGenome . head . bestFirst Maximizing $ finalPop
 	putStrLn $ showGenome problem winner
