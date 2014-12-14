@@ -17,7 +17,7 @@ import Data.List (tails, inits, intersect)
 import Data.Maybe (fromMaybe)
 import Data.List (zip4)
 import Data.List (nub)
-import Data.List (group)
+import Data.List (group, groupBy)
 import Data.Graph.Inductive.Query.Monad (mapSnd)
 import TypeModule (WeightedCriterion ,Criterion(..), Analysation(..))
 -- for testing
