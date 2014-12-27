@@ -1,5 +1,5 @@
 {-# LANGUAGE FlexibleInstances #-}
- module NaturalLanguageModule
+module NaturalLanguageModule
 	( naturalismDefault
 	, naturalism
 	, Criterion(..)
@@ -32,10 +32,10 @@ naturalism criterions = sum . zipWith evaluateWeightedBy criterions . repeat . n
 		evaluateWeightedBy (criterion, analysation, weight) = (*) weight . naturalismBy analysation criterion 
 
 		naturalismBy :: Analysation -> Criterion -> String -> Double
-		naturalismBy analysation Monogram	= evaluateCatalog monogramValueList		analysation . catalogise (map fst monogramValueList)	. getMonograms
+		naturalismBy analysation Monogram	= evaluateCatalog monogramValueList		analysation . catalogise (map fst monogramValueList)		. getMonograms
 		naturalismBy analysation Bigram		= evaluateCatalog bigramValueList		analysation . catalogise (map fst bigramValueList)		. getBigrams
 		naturalismBy analysation Trigram	= evaluateCatalog trigramValueList		analysation . catalogise (map fst trigramValueList)		. getTrigrams
-		naturalismBy analysation Quadrigram	= evaluateCatalog quadrigramValueList	analysation . catalogise (map fst quadrigramValueList)	. getQuadrigrams
+                naturalismBy analysation Quadrigram	= evaluateCatalog quadrigramValueList		analysation . catalogise (map fst quadrigramValueList)		. getQuadrigrams
 		naturalismBy analysation Word		= evaluateCatalog wordValueList			analysation . catalogise (map fst wordValueList)		. getWords
 		
 		getMonograms		= id
@@ -56,31 +56,21 @@ naturalism criterions = sum . zipWith evaluateWeightedBy criterions . repeat . n
 				cleverLookup :: (Ord n, Eq n) => [(n, Double)] -> n -> Double
 				cleverLookup list = fromMaybe 0 . flip Map.lookup (Map.fromList list)
 		evaluateCatalog valuelist ByExpWeight = evaluateCatalog (map (mapSnd exp) valuelist) ByWeight
-		evaluateCatalog valuelist ByScyline = norm1 (map snd valuelist) . ratios . map (fromIntegral . snd)
-			where
-				norm1 :: [Double] -> [Double] -> Double
-				norm1 xs ys = sum (zipWith (\x y -> abs (x-y)) xs ys)
+                evaluateCatalog valuelist ByScyline = skyline valuelist 
 
-				-- the result should sum up to 1
-				ratios :: [Double] -> [Double]
-				ratios list = map divByTotal list
-					where
-						total :: Double
-						total = sum list
-				
-						divByTotal :: Double -> Double
-						divByTotal n = n / total
 
 naturalismDefault :: String -> Double
 naturalismDefault = naturalism defaultCriterions
 
 defaultCriterions :: [WeightedCriterion]
 defaultCriterions = 
-	[ (Monogram		, ByExpWeight, 0.02)
-	, (Bigram		, ByExpWeight, 40)
-	, (Trigram		, ByExpWeight, 1000)
-	, (Quadrigram	        , ByExpWeight, 10000)
-	, (Word			, ByExpWeight, 10)
+        [ (Monogram             , ByExpWeight,   1)
+        -- [ (Monogram             , ByScyline,   13000)
+        -- , (Monogram		, ByExpWeight, 0.0001)
+	-- , (Bigram		, ByExpWeight, 1)
+	-- , (Trigram		, ByExpWeight, 4)
+        -- , (Quadrigram	        , ByExpWeight, 100)
+	-- , (Word			, ByExpWeight, 5)
 	]
 
 
@@ -102,19 +92,29 @@ catalogiseMonogramms = catalogise charList
 
 --skyline
 
-skylinediff :: (Eq a, Ord a, Num b) => [(a,b)] -> [(a,b)] -> b
-skylinediff x y = sum . map (diff . map snd) . groupBy (on (==) fst) . sortBy (comparing fst) $ x ++ y
+skyline :: (Eq a, Ord a) => [(a, Double)] -> [(a, Int)] -> Double
+skyline catalog1 catalog2 = (-) 1  $ skylinediff (normalizeBySecond catalog1) (normalizeBySecond . map (mapSnd fromIntegral)  $ catalog2)
+  where
+    -- makes sure that sum . map snd $ list == 1
+    normalizeBySecond :: (Fractional b) => [(a,b)] -> [(a,b)]
+    normalizeBySecond list = map (\(x,y) -> (x,y/bsum)) list
+      where
+        bsum = sum . map snd $ list
+    
+    skylinediff :: (Eq a, Ord a, Num b) => [(a,b)] -> [(a,b)] -> b
+    skylinediff x y = sum . map (diff . map snd) . groupBy (on (==) fst) . sortBy (comparing fst) $ x ++ y
 
 
-
-diff :: (Num a) => [a] -> a
-diff [] = 0
-diff [x] = x
-diff [x,y] = abs (x-y)
-diff _ = undefined "Something went wrong at diff: Was called with more then two arguments."
+    diff :: (Num a) => [a] -> a
+    diff [] = 0
+    diff [x] = x
+    diff [x,y] = (^2) . abs $ (x-y)
+    diff _ = undefined "Something went wrong at diff: Was called with more then two arguments."
 
 -- Lists found here: http://www.cryptograms.org/letter-frequencies.php
 
+
+-- sum . map snd $ monogramValueList == 100.00000000000001
 monogramValueList :: [(Char, Double)]
 monogramValueList =
 	[ ('E', 12.575645)

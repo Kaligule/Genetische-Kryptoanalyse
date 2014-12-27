@@ -44,7 +44,7 @@ tail -5 output.txt
 -- stopconditions (they are very high)
 maxiters = 50000
 minFittness = blindtext1Naturalism defaultCriterions
-timeLimit = 10 -- in seconds
+timeLimit = 600 -- in seconds
 
 problem :: Problem Char
 problem = cryptotext2

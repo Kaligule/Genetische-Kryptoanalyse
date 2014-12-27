@@ -13,7 +13,7 @@ data Analyses = Analyses 	{ name :: String
 							, valueList :: [Double]}
 
 inputFileName :: [String]
-inputFileName = map fileName [1..4]
+inputFileName = map fileName [1..10]
 	where
 		fileName :: Int -> String
 		fileName n = "solvingLogs/output" ++ show n ++ ".txt"

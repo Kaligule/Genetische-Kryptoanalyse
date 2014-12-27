@@ -10,11 +10,17 @@ then
 fi
 
 anzahlDurchlaufe="$1"
-echo "Dollar 1 ist: $1"
-echo "anzahlDurchlaufe ist $anzahlDurchlaufe"
 ghc --make -O2 -outputdir=ghc_outputdir GenMasc.hs
 echo "compiled GenMasc.hs"
+
+echo "remove old Logs and Plots"
+rm solvingLogs/*
+rm solvingPlots/*
+echo "removed them"
+
+echo "run GenMasc"
 seq $anzahlDurchlaufe | parallel --gnu ./runOnceAndPlotMasc.sh
+echo "evolution finished"
 
 
 ./plotMultipleOutputs.sh
