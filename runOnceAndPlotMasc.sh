@@ -9,7 +9,7 @@ gnuplot -e "dataName ='solvingLogs/output$1.txt'; pdfName='solvingPlots/output$1
 
 # ausgabe machen
 filelength=$(wc -l < solvingLogs/output$1.txt)
-echo "Final Generation: $(($filelength / 2 - 4))"
+echo "Final Generation: $(($filelength / 1 - 6))"
 tail -6 solvingLogs/output$1.txt
 
 #aufraeumen

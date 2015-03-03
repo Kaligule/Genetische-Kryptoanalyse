@@ -2,6 +2,7 @@ set termina pdf enhanced color font 'Helvetica,10'
 set xlabel 'Generations'
 set ylabel 'sorting fittnes'
 set output pdfName 
+set key opaque
 set key bottom right box
 
 # line styles for ColorBrewer Dark2
@@ -25,4 +26,4 @@ set style line 9 lc rgb 'dark-blue' # blue
 obergrenze=system("head -1 " . dataName . "| cut -c1-2 --complement") + 0
 
 # plot for [col=2:11] dataName using 1:col with lines title columnheader, obergrenze linecolor rgb "black" title "Fittnes to reach"
-plot for [col=2:11] dataName using 1:col with lines ls (col-1) lw 5 title columnheader, obergrenze  linecolor rgb "black" title "Fittnes to reach"
+plot for [col=2:9] dataName using 1:col with lines ls (col-1) lw 5 title columnheader, obergrenze  linecolor rgb "black" title "Fittnes to reach"

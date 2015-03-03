@@ -19,7 +19,7 @@ import Data.List (zip4)
 import Data.List (nub)
 import Data.List (group, groupBy)
 import Data.Graph.Inductive.Query.Monad (mapSnd)
-import TypeModule (WeightedCriterion ,Criterion(..), Analysation(..))
+import TypeModule (WeightedCriterion, Criterion(..), Analysation(..))
 -- for testing
 import Data.List (sort, sortBy)
 import Data.Function (on)
@@ -29,7 +29,7 @@ naturalism :: [WeightedCriterion] -> String -> Double
 naturalism criterions = sum . zipWith evaluateWeightedBy criterions . repeat . normalizeLanguage
 	where
 		evaluateWeightedBy :: WeightedCriterion -> String -> Double 
-		evaluateWeightedBy (criterion, analysation, weight) = (*) weight . naturalismBy analysation criterion 
+		evaluateWeightedBy (criterion, analysation, weight) str = (balanceParameter analysation criterion) * weight * (naturalismBy analysation criterion str) 
 
 		naturalismBy :: Analysation -> Criterion -> String -> Double
 		naturalismBy analysation Monogram	= evaluateCatalog monogramValueList		analysation . catalogise (map fst monogramValueList)		. getMonograms
@@ -38,6 +38,19 @@ naturalism criterions = sum . zipWith evaluateWeightedBy criterions . repeat . n
                 naturalismBy analysation Quadrigram	= evaluateCatalog quadrigramValueList		analysation . catalogise (map fst quadrigramValueList)		. getQuadrigrams
 		naturalismBy analysation Word		= evaluateCatalog wordValueList			analysation . catalogise (map fst wordValueList)		. getWords
 		
+                balanceParameter :: Analysation -> Criterion -> Double
+                balanceParameter ByExpWeight Monogram   = 0.00001
+                balanceParameter ByExpWeight Bigram     = 0.3
+                balanceParameter ByExpWeight Trigram    = 5
+                balanceParameter ByExpWeight Quadrigram = 50
+                balanceParameter ByExpWeight Word       = 0.0000005
+
+                balanceParameter ByScyline   Monogram   = 1000
+                
+                balanceParameter _ _ = 1 -- default
+
+
+                
 		getMonograms		= id
 		getBigrams list		= zip list (drop 1 list) 
 		getTrigrams list	= zip3 list (drop 1 list) (drop 2 list) 
@@ -64,13 +77,13 @@ naturalismDefault = naturalism defaultCriterions
 
 defaultCriterions :: [WeightedCriterion]
 defaultCriterions = 
-        [ (Monogram             , ByExpWeight,   1)
-        -- [ (Monogram             , ByScyline,   13000)
-        -- , (Monogram		, ByExpWeight, 0.0001)
-	-- , (Bigram		, ByExpWeight, 1)
-	-- , (Trigram		, ByExpWeight, 4)
-        -- , (Quadrigram	        , ByExpWeight, 100)
-	-- , (Word			, ByExpWeight, 5)
+        -- [ (Monogram             , ByScyline,   1)
+        [ (Monogram             , ByScyline,     20)
+        , (Monogram		, ByExpWeight,   20)
+	, (Bigram		, ByExpWeight,   20)
+	, (Trigram		, ByExpWeight,   10)
+        , (Quadrigram	        , ByExpWeight,   5)
+	, (Word			, ByExpWeight,   30)
 	]
 
 
@@ -225,34 +238,30 @@ wordValueList =
 -- words known to be in the text
 knownWordValueList :: [String]
 knownWordValueList = 
-	[ "HUMAN"
-	, "RIGHTS"
-	, "ALL"
-	, "PEOPLE"
+	[ "LICENCE"
+	, "ALLOW"
+	, "FREE"
+	, "COPY"
 	]
 
 -- words assumed to be in the text 
 assumedWordValuelist :: [String]
 assumedWordValuelist = (nub . map normalizeLanguage)
-	[ "and"
-	, "animal"
-	, "eat"
-	, "give"
-	, "global"
-	, "governmen"
-	, "human"
-	, "law"
-	, "legal"
-	, "life"
-	, "live"
-	, "person"
-	, "principles"
-	, "rights"
-	, "take"
-	, "torture"
-	, "universal"
-	, "world"
-	] 
+	[ "SOFTWARE"
+        , "LAW"
+        , "SHARE"
+        , "RESTRICT"
+        , "REMOVE"
+        , "SPREAD"
+        , "CONTRIBUTE"
+        , "HUMAN"
+        , "SOURCE"
+        , "OPEN"
+        , "LINUX"
+        , "DISTRIBUT"
+        , "CODE"
+        , "FOUND"
+        ]
 
 -- Source http://www.bckelk.ukfsn.org/words/uk1000n.html
 -- absolute value multiplied by 10^whatever
@@ -320,7 +329,7 @@ statisticWordValueList =
 	, ("THEIR",		0.103486)
 	, ("YOUR",		0.102978)
 	, ("WILL",		0.100010)
-	, ("LITTLE",	0.095975)
+	, ("LITTLE",		0.095975)
 	, ("THAN",		0.092228)
 	, ("THEN",		0.089051)
 	, ("SOME",		0.088083)
@@ -331,7 +340,7 @@ statisticWordValueList =
 	, ("ABOUT",		0.076503)
 	, ("TIME",		0.075364)
 	, ("KNOW",		0.075318)
-	, ("SHOULD",	0.075181)
+	, ("SHOULD",		0.075181)
 	, ("MAN",		0.074940)
 	, ("DID",		0.074608)
 	, ("LIKE",		0.074352)
@@ -341,7 +350,7 @@ statisticWordValueList =
 	, ("ONLY",		0.069459)
 	, ("GOOD",		0.069203)
 	, ("HOW",		0.067879)
-	, ("BEFORE",	0.067541)
+	, ("BEFORE",		0.067541)
 	, ("OTHER",		0.065592)
 	, ("SEE",		0.065057)
 	, ("MUST",		0.064488)

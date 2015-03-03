@@ -9,6 +9,12 @@ then
   exit $E_BADARGS
 fi
 
+echo "removing all the .hi and .o files"
+rm *.hi
+rm *.o
+echo "removed"
+
+
 anzahlDurchlaufe="$1"
 ghc --make -O2 -outputdir=ghc_outputdir GenMasc.hs
 echo "compiled GenMasc.hs"

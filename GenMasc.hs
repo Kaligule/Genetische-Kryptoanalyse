@@ -44,7 +44,7 @@ tail -5 output.txt
 -- stopconditions (they are very high)
 maxiters = 50000
 minFittness = blindtext1Naturalism defaultCriterions
-timeLimit = 600 -- in seconds
+timeLimit = 600  -- in seconds 
 
 problem :: Problem Char
 problem = cryptotext2
@@ -53,7 +53,7 @@ popsize :: Int
 popsize = 7
 
 selection :: SelectionOp a
-selection = rouletteSelect 5
+selection = withScale (\x -> x*x) (rouletteSelect 5)
 
 crossover :: (Ord a) => CrossoverOp a
 crossover =
@@ -66,7 +66,7 @@ mutation :: MutationOp a
 mutation =
 	combineMutationOps [shiftMutate, swapMutate]
 
-elitesize = 1
+elitesize = 3
 
 natFitnes :: Problem Char -> Genome Char -> Double
 natFitnes problem genome =
@@ -87,7 +87,7 @@ geneticAlgorithm problem = do
 	runIO (initializeMascGenome popsize) $ loopIO
 		[DoEvery 1 (logStats problem), TimeLimit timeLimit]
 		(Or (Generations maxiters) (IfObjective (any (>= minFittness))))
-		nextGen
+		nextGen 
 		where
 			nextGen :: StepGA Rand Char
 			--nextGen = nextSteadyState 8 Maximizing fitness selection crossover mutation
@@ -123,6 +123,9 @@ main = do
 	putStrLn $ "# Fittnes to reach: " ++ (show) minFittness 
 	putStrLn "# generation medianValue bestValue"
 	finalPop <- geneticAlgorithm problem
+        if (finalPop == [])
+          then error "finalpop is empty"
+          else do 
 	let winner = takeGenome . head . bestFirst Maximizing $ finalPop
 	putStrLn $ showGenome problem winner
 	return ()
